@@ -35,7 +35,7 @@ Levar um link do celular para a tela da sala de reunião, ou uma nota do noteboo
 ## Começar
 
 ```bash
-docker run -d --name linkdrop -p 47821:47821 ghcr.io/thiagosctg/linkdrop:v0.1.0
+docker run -d --name linkdrop -p 47821:47821 ghcr.io/thiagosctg/linkdrop:v0.1.1
 ```
 
 Em uma rede local de confiança, abra `http://<IP-do-computador-na-rede>:47821` no computador e escaneie o QR Code com o celular. Os dois dispositivos precisam alcançar esse endereço; `localhost` no celular aponta para o próprio celular. Os itens continuam criptografados em HTTP, mas alguém na rede pode alterar o aplicativo e capturar chaves ou conteúdos. A interface informa essa limitação. Use HTTPS para instâncias públicas e redes em que você não confia.

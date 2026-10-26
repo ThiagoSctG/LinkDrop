@@ -35,7 +35,7 @@ Getting a URL from your phone to a meeting-room screen, or a note from a laptop 
 ## Quick start
 
 ```bash
-docker run -d --name linkdrop -p 47821:47821 ghcr.io/thiagosctg/linkdrop:v0.1.0
+docker run -d --name linkdrop -p 47821:47821 ghcr.io/thiagosctg/linkdrop:v0.1.1
 ```
 
 On a trusted local network, open `http://<computer-LAN-IP>:47821` on the computer and scan its QR code with the phone. Both devices must reach that address; `localhost` on the phone points to the phone itself. Items remain encrypted on HTTP, but someone on the network could alter the application and capture keys or contents. The interface shows this limitation. Use HTTPS for public instances and networks you do not trust.

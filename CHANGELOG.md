@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.1.1] - 2026-10-26
+
 - Keep an item's time on one line on narrow phones; the kind label stays available to screen readers.
 - Show the HTTP notice only outside a secure context, so `localhost` no longer shows it.
 - Drop decorative labels and effects from the pairing screen: the "ready" and "temporary code" badges, the scanner corners and scan line, and the uppercase kind label on items.

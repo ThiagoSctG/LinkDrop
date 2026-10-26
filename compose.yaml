@@ -1,7 +1,7 @@
 services:
   web:
     build: .
-    image: ghcr.io/thiagosctg/linkdrop:${WEB_TAG:-v0.1.0}
+    image: ghcr.io/thiagosctg/linkdrop:${WEB_TAG:-v0.1.1}
     # Empty values fall back to the built-in defaults (see .env.example).
     environment:
       PORT: 47821
