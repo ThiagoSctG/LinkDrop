@@ -1,3 +1,4 @@
+import { readPairingKey } from "./crypto";
 import { useEffect, useState } from "preact/hooks";
 import { type Connection, type EndReason, request } from "./api";
 import { TopBar } from "./chrome";
@@ -14,7 +15,7 @@ type PhoneState =
 
 /**
  * A token in the URL means a fresh scan, so it always wins over a saved session.
- * After pairing the token leaves the address bar; reloading /pair resumes the saved session.
+ * Before pairing the token and encryption fragment leave the address bar; reloading /pair resumes the saved session.
  */
 function initialState(token: string | undefined): PhoneState {
   if (token) return { kind: "connecting" };
@@ -23,26 +24,37 @@ function initialState(token: string | undefined): PhoneState {
 }
 
 export function PhoneApp({ token }: { token?: string }) {
+  const [encryptionKey] = useState(() => {
+    const key = token ? readPairingKey() : null;
+    if (token) window.history.replaceState(window.history.state, "", "/pair");
+    return key;
+  });
   const [state, setState] = useState<PhoneState>(() => initialState(token));
 
   useEffect(() => {
     if (!token) return;
+    if (!encryptionKey) {
+      setState({ kind: "failed", message: errorMessage("encryption_key") });
+      return;
+    }
     let canceled = false;
-    void request<Connection>(`/api/pair/${encodeURIComponent(token)}`, { method: "POST" }).then((result) => {
-      if (canceled) return;
-      if (!result.ok) {
-        setState({ kind: "failed", message: errorMessage(result.code) });
-        return;
-      }
-      const connection: Connection = { ...result.data, role: "phone" };
-      saveConnection(connection);
-      window.history.replaceState(window.history.state, "", "/pair");
-      setState({ kind: "connected", connection });
-    });
+    void request<Omit<Connection, "encryptionKey">>(`/api/pair/${encodeURIComponent(token)}`, { method: "POST" }).then(
+      (result) => {
+        if (canceled) return;
+        if (!result.ok) {
+          setState({ kind: "failed", message: errorMessage(result.code) });
+          return;
+        }
+        const connection: Connection = { ...result.data, role: "phone", encryptionKey };
+        saveConnection(connection);
+        window.history.replaceState(window.history.state, "", "/pair");
+        setState({ kind: "connected", connection });
+      },
+    );
     return () => {
       canceled = true;
     };
-  }, [token]);
+  }, [token, encryptionKey]);
 
   if (state.kind === "connected") {
     return <Session connection={state.connection} onEnded={(reason) => setState({ kind: "ended", reason })} />;

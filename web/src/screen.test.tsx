@@ -1,8 +1,9 @@
 import { cleanup, render, screen, waitFor, fireEvent } from "@testing-library/preact";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import QRCode from "qrcode";
 import { App } from "./app";
 import { CONNECTED_MS } from "./pairing-display";
-import { FakeWebSocket, fakeApi, setLanguage, visit } from "./test/fakes";
+import { TEST_KEY, FakeWebSocket, fakeApi, setLanguage, visit } from "./test/fakes";
 
 const pairingResponse = {
   status: 201,
@@ -26,9 +27,27 @@ afterEach(() => {
   cleanup();
   vi.useRealTimers();
   vi.unstubAllGlobals();
+  vi.restoreAllMocks();
 });
 
 describe("screen", () => {
+  it("creates the encryption key locally, shares it only in the QR fragment and retains it when paired", async () => {
+    const qr = vi.spyOn(QRCode, "toString");
+    const api = fakeApi({ "POST /api/screens": () => pairingResponse });
+    render(<App />);
+    const socket = await FakeWebSocket.next("pairingToken", "tok1");
+    expect(qr).toHaveBeenCalled();
+    const url = new URL(String(qr.mock.calls[0][0]));
+    const key = new URLSearchParams(url.hash.slice(1)).get("key");
+    expect(key).toMatch(/^[A-Za-z0-9_-]{43}$/);
+    expect(url.origin).toBe(window.location.origin);
+    expect(JSON.stringify(api.calls)).not.toContain(key!);
+    expect(socket.url.href).not.toContain(key!);
+    expect(socket.protocols).not.toContain(key);
+    socket.receive({ type: "paired", sessionId: "s1", endpointKey: "screen-key", role: "screen" });
+    await waitFor(() => expect(JSON.parse(localStorage.getItem("linkdrop:screen")!).encryptionKey).toBe(key));
+  });
+
   it("shows a QR code and waits for a phone on its pairing channel", async () => {
     fakeApi({ "POST /api/screens": () => pairingResponse });
     render(<App />);
@@ -38,7 +57,7 @@ describe("screen", () => {
     expect(screen.getByText("O código é renovado automaticamente.")).toBeTruthy();
     const socket = await FakeWebSocket.next("pairingToken", "tok1");
     expect(socket.url.pathname).toBe("/api/realtime");
-    expect(socket.protocols).toEqual(["linkdrop.v2", "screen-key"]);
+    expect(socket.protocols).toEqual(["linkdrop.v3", "screen-key"]);
   });
 
   it.each([
@@ -58,17 +77,23 @@ describe("screen", () => {
     render(<App />);
     const pairingSocket = await FakeWebSocket.next("pairingToken", "tok1");
     pairingSocket.open();
-    pairingSocket.receive({ type: "paired", sessionId: "s1", endpointKey: "screen-key", role: "screen" });
+    pairingSocket.receive({
+      type: "paired",
+      sessionId: "s1",
+      endpointKey: "screen-key",
+      role: "screen",
+    });
 
     expect((await screen.findByRole("status")).textContent).toBe("Celular conectado!");
     await vi.advanceTimersByTimeAsync(CONNECTED_MS);
     expect(await screen.findByText("Tela conectada")).toBeTruthy();
     const sessionSocket = await FakeWebSocket.next("sessionId", "s1");
-    expect(sessionSocket.protocols).toEqual(["linkdrop.v2", "screen-key"]);
+    expect(sessionSocket.protocols).toEqual(["linkdrop.v3", "screen-key"]);
     expect(JSON.parse(localStorage.getItem("linkdrop:screen")!)).toEqual({
       sessionId: "s1",
       endpointKey: "screen-key",
       role: "screen",
+      encryptionKey: expect.stringMatching(/^[A-Za-z0-9_-]{43}$/),
     });
   });
 
@@ -114,7 +139,7 @@ describe("screen", () => {
   it("resumes a saved session after a reload", async () => {
     localStorage.setItem(
       "linkdrop:screen",
-      JSON.stringify({ sessionId: "s1", endpointKey: "screen-key", role: "screen" }),
+      JSON.stringify({ sessionId: "s1", endpointKey: "screen-key", role: "screen", encryptionKey: TEST_KEY }),
     );
     const api = fakeApi({});
     render(<App />);

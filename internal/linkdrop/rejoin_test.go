@@ -43,9 +43,7 @@ func TestRejoinPreservesItemsAndReplacesPhone(t *testing.T) {
 	h := newHarness(t)
 	sess := h.createSession()
 
-	itemRes := h.do("POST", "/api/sessions/"+sess.phone.SessionID+"/items", sess.phoneHeaders(), map[string]string{
-		"content": "https://example.com",
-	})
+	itemRes := h.do("POST", "/api/sessions/"+sess.phone.SessionID+"/items", sess.phoneHeaders(), encryptedDraft())
 	expectStatus(t, itemRes, http.StatusCreated)
 
 	rejoinRes := h.do("POST", "/api/sessions/"+sess.phone.SessionID+"/pairing", sess.screenHeaders(), nil)

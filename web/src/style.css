@@ -99,6 +99,15 @@ html {
  * Body stays transparent so the glow layer, painted behind it, shows over the page color on <html>:
  * two soft light pools at the top and a dot grid that fades out down the page.
  */
+.transport-notice {
+  padding: 12px max(20px, calc((100vw - 1120px) / 2));
+  border-bottom: 1px solid var(--line-strong);
+  background: var(--surface-subtle);
+  color: var(--ink);
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+
 body {
   margin: 0;
   background: transparent;

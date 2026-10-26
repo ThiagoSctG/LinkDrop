@@ -1,12 +1,18 @@
 import type { Connection, Role } from "./api";
+import { validEncryptionKey } from "./crypto";
 
 // Storage can throw (private mode, blocked site data); LinkDrop then simply forgets on reload.
 
 export function loadConnection(role: Role): Connection | null {
   try {
     const saved = JSON.parse(localStorage.getItem(`linkdrop:${role}`) ?? "null");
-    if (saved && typeof saved.sessionId === "string" && typeof saved.endpointKey === "string") {
-      return { sessionId: saved.sessionId, endpointKey: saved.endpointKey, role };
+    if (
+      saved &&
+      typeof saved.sessionId === "string" &&
+      typeof saved.endpointKey === "string" &&
+      validEncryptionKey(saved.encryptionKey)
+    ) {
+      return { sessionId: saved.sessionId, endpointKey: saved.endpointKey, role, encryptionKey: saved.encryptionKey };
     }
   } catch {}
   forgetConnection(role);

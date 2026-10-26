@@ -1,4 +1,5 @@
 import QRCode from "qrcode";
+import { createEncryptionKey, pairingWithKey } from "./crypto";
 import { useEffect, useRef, useState } from "preact/hooks";
 import { type Connection, type EndReason, type Pairing, isGone, request } from "./api";
 import { StatusPill, TopBar } from "./chrome";
@@ -86,17 +87,21 @@ function PairingView({
     let canceled = false;
     setFailed(false);
     void (async () => {
-      const result = await request<Pairing>("/api/screens", { method: "POST" });
+      const encryptionKey = createEncryptionKey();
+      const result = await request<Omit<Pairing, "encryptionKey">>("/api/screens", { method: "POST" });
       if (canceled) return;
       if (!result.ok) {
         setFailed(true);
         return;
       }
-      const svg = await QRCode.toString(result.data.pairingUrl, { type: "svg", margin: 1 });
+      const secured = pairingWithKey(result.data, encryptionKey);
+      const svg = await QRCode.toString(secured.pairingUrl, { type: "svg", margin: 1 });
       if (canceled) return;
-      setPairing(result.data);
+      setPairing(secured);
       setQr(`data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`);
-    })();
+    })().catch(() => {
+      if (!canceled) setFailed(true);
+    });
     return () => {
       canceled = true;
     };
@@ -105,7 +110,12 @@ function PairingView({
   useEffect(() => {
     if (!pairing) return;
     const paired = (sessionId: string) =>
-      onPairedRef.current({ sessionId, endpointKey: pairing.screenKey, role: "screen" });
+      onPairedRef.current({
+        sessionId,
+        endpointKey: pairing.screenKey,
+        role: "screen",
+        encryptionKey: pairing.encryptionKey,
+      });
     const lifetime = Math.max(MIN_QR_LIFETIME_MS, Date.parse(pairing.expiresAt) - Date.now());
     const expiry = setTimeout(replaceCode, lifetime);
     const stop = connectRealtime({

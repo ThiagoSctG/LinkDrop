@@ -1,9 +1,10 @@
 import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/preact";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import QRCode from "qrcode";
 import { App } from "./app";
 import { CONNECTED_MS } from "./pairing-display";
 import { UNDO_MS } from "./session";
-import { FakeWebSocket, fakeApi, setLanguage, visit } from "./test/fakes";
+import { TEST_KEY, sentPlaintext, FakeWebSocket, fakeApi, setLanguage, visit } from "./test/fakes";
 
 const link = { id: "i1", content: "https://example.com", type: "link", createdAt: "2026-07-09T10:00:00Z" };
 const note = {
@@ -16,7 +17,10 @@ const note = {
 
 function resumeAs(role: "screen" | "phone") {
   const key = `${role}-key`;
-  localStorage.setItem(`linkdrop:${role}`, JSON.stringify({ sessionId: "s1", endpointKey: key, role }));
+  localStorage.setItem(
+    `linkdrop:${role}`,
+    JSON.stringify({ sessionId: "s1", endpointKey: key, role, encryptionKey: TEST_KEY }),
+  );
   visit(role === "screen" ? "/" : "/pair");
   return key;
 }
@@ -85,7 +89,7 @@ describe("shared session", () => {
     await waitFor(() => expect((screen.getByLabelText("Link ou texto") as HTMLTextAreaElement).value).toBe(""));
     expect(screen.getByRole("button", { name: "Enviar" })).toBeTruthy();
     expect(api.calls).toHaveLength(1);
-    expect(api.calls[0].body).toEqual({ title: "", content: "https://example.com" });
+    expect(await sentPlaintext(api.calls[0].body)).toMatchObject({ title: "", content: "https://example.com" });
     expect(api.calls[0].headers.get("x-endpoint-key")).toBe(key);
   });
 
@@ -467,7 +471,7 @@ describe("composer shortcuts", () => {
 
     fireEvent.keyDown(field, { key: "Enter", ctrlKey: true });
     await waitFor(() => expect(api.calls).toHaveLength(1));
-    expect(api.calls[0].body).toEqual({ title: "", content: "first line" });
+    expect(await sentPlaintext(api.calls[0].body)).toMatchObject({ title: "", content: "first line" });
 
     fireEvent.input(field, { target: { value: "second" } });
     fireEvent.keyDown(field, { key: "Enter", metaKey: true });
@@ -657,7 +661,7 @@ describe("session experience", () => {
     fireEvent.submit(screen.getByRole("button", { name: "Enviar" }).closest("form")!);
 
     await waitFor(() => expect(api.calls).toHaveLength(1));
-    expect(api.calls[0].body).toEqual({ title: "Doc", content: "https://example.com" });
+    expect(await sentPlaintext(api.calls[0].body)).toMatchObject({ title: "Doc", content: "https://example.com" });
     await waitFor(() => expect(screen.queryByLabelText("Título (opcional)")).toBeNull());
   });
 
@@ -888,6 +892,7 @@ describe("phone rejoin from screen", () => {
   });
 
   it("opens reconnect dialog, shows warning, QR, and closes upon pairing", async () => {
+    const qr = vi.spyOn(QRCode, "toString");
     resumeAs("screen");
     const rejoinResponse = {
       status: 201,
@@ -911,11 +916,19 @@ describe("phone rejoin from screen", () => {
     expect(within(dialog).getByRole("heading", { name: "Reconectar celular" })).toBeTruthy();
     expect(within(dialog).getByText("O celular conectado agora será desconectado.")).toBeTruthy();
     expect(await within(dialog).findByRole("img")).toBeTruthy();
+    const qrUrl = new URL(String(qr.mock.calls.at(-1)![0]));
+    expect(qrUrl.origin).toBe(window.location.origin);
+    expect(qrUrl.hash).toBe(`#key=${TEST_KEY}`);
     expect(within(dialog).getByRole("button", { name: "Copiar link de acesso" })).toBeTruthy();
 
     const pairingSocket = await FakeWebSocket.next("pairingToken", "rejoin-tok");
     pairingSocket.open();
-    pairingSocket.receive({ type: "paired", sessionId: "s1", endpointKey: "screen-key", role: "screen" });
+    pairingSocket.receive({
+      type: "paired",
+      sessionId: "s1",
+      endpointKey: "screen-key",
+      role: "screen",
+    });
 
     expect(await within(dialog).findByText("Celular conectado!")).toBeTruthy();
     await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
@@ -998,7 +1011,12 @@ describe("phone rejoin from screen", () => {
     fireEvent.click(open);
     const pairingSocket = await FakeWebSocket.next("pairingToken", "rejoin-tok-1");
     pairingSocket.open();
-    pairingSocket.receive({ type: "paired", sessionId: "s1", endpointKey: "screen-key", role: "screen" });
+    pairingSocket.receive({
+      type: "paired",
+      sessionId: "s1",
+      endpointKey: "screen-key",
+      role: "screen",
+    });
     const dialog = await screen.findByRole("dialog");
     expect(await within(dialog).findByText("Celular conectado!")).toBeTruthy();
 

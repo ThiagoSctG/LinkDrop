@@ -1,7 +1,7 @@
 import { cleanup, render, screen } from "@testing-library/preact";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { App } from "./app";
-import { FakeWebSocket, fakeApi, networkDown, setLanguage, visit } from "./test/fakes";
+import { TEST_KEY, FakeWebSocket, fakeApi, networkDown, setLanguage, visit } from "./test/fakes";
 
 beforeEach(() => {
   localStorage.clear();
@@ -15,24 +15,38 @@ afterEach(() => {
 });
 
 describe("phone", () => {
+  it.each(["", "#key=invalid"])(
+    "rejects a missing or malformed encryption key before claiming a pairing: %s",
+    async (fragment) => {
+      window.history.replaceState(null, "", `/pair/tok1${fragment}`);
+      const api = fakeApi({});
+      render(<App />);
+      expect(await screen.findByText(/Este link não contém uma chave/)).toBeTruthy();
+      expect(api.calls).toHaveLength(0);
+      expect(window.location.hash).toBe("");
+      expect(window.location.pathname).toBe("/pair");
+    },
+  );
+
   it("pairs from the scanned link and removes the token from the address bar", async () => {
     visit("/pair/tok1");
     fakeApi({
-      "POST /api/pair/tok1": () => ({
-        status: 201,
-        body: { sessionId: "s1", endpointKey: "phone-key", role: "phone" },
-      }),
+      "POST /api/pair/tok1": () => {
+        expect(window.location.hash).toBe("");
+        return { status: 201, body: { sessionId: "s1", endpointKey: "phone-key", role: "phone" } };
+      },
     });
     render(<App />);
 
     expect(await screen.findByText("Celular conectado")).toBeTruthy();
     expect(window.location.pathname).toBe("/pair");
     const socket = await FakeWebSocket.next("sessionId", "s1");
-    expect(socket.protocols).toEqual(["linkdrop.v2", "phone-key"]);
+    expect(socket.protocols).toEqual(["linkdrop.v3", "phone-key"]);
     expect(JSON.parse(localStorage.getItem("linkdrop:phone")!)).toEqual({
       sessionId: "s1",
       endpointKey: "phone-key",
       role: "phone",
+      encryptionKey: TEST_KEY,
     });
   });
 
@@ -60,7 +74,10 @@ describe("phone", () => {
   });
 
   it("prefers a freshly scanned code over a saved session", async () => {
-    localStorage.setItem("linkdrop:phone", JSON.stringify({ sessionId: "old", endpointKey: "old-key", role: "phone" }));
+    localStorage.setItem(
+      "linkdrop:phone",
+      JSON.stringify({ sessionId: "old", endpointKey: "old-key", role: "phone", encryptionKey: TEST_KEY }),
+    );
     visit("/pair/tok2");
     fakeApi({
       "POST /api/pair/tok2": () => ({ status: 201, body: { sessionId: "s2", endpointKey: "new-key", role: "phone" } }),
@@ -73,7 +90,7 @@ describe("phone", () => {
   it("resumes the saved session when reloaded without a token", async () => {
     localStorage.setItem(
       "linkdrop:phone",
-      JSON.stringify({ sessionId: "s1", endpointKey: "phone-key", role: "phone" }),
+      JSON.stringify({ sessionId: "s1", endpointKey: "phone-key", role: "phone", encryptionKey: TEST_KEY }),
     );
     visit("/pair");
     fakeApi({});
@@ -92,7 +109,7 @@ describe("phone", () => {
   it("explains when another phone replaced this one", async () => {
     localStorage.setItem(
       "linkdrop:phone",
-      JSON.stringify({ sessionId: "s1", endpointKey: "phone-key", role: "phone" }),
+      JSON.stringify({ sessionId: "s1", endpointKey: "phone-key", role: "phone", encryptionKey: TEST_KEY }),
     );
     visit("/pair");
     fakeApi({});

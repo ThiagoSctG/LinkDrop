@@ -47,7 +47,7 @@ jobs:
           notes = sections[1].split("\n", 1)[1].split("\n## ", 1)[0].strip()
           if not notes:
               raise SystemExit("Release notes must not be empty")
-          notes += f"\n\n### Installation\n\n- Container: `docker run -d -p 47821:47821 --name linkdrop ghcr.io/thiagosctg/linkdrop:{tag}`\n- Binaries: download and extract the archive for your OS and architecture below.\n- Open `http://localhost:47821`; use the computer's LAN IP when pairing a phone.\n- Verify downloads against `checksums.txt`. See the README for platform instructions.\n"
+          notes += f"\n\n### Installation\n\n- Container: `docker run -d -p 47821:47821 --name linkdrop ghcr.io/thiagosctg/linkdrop:{tag}`\n- Binaries: download and extract the archive for your OS and architecture below.\n- On a trusted LAN, open `http://<computer-LAN-IP>:47821` on the screen and scan the QR with the phone. Items are encrypted, but HTTP cannot protect the delivered app or access credentials from a network attacker. Use HTTPS for public instances or untrusted networks.\n- Verify downloads against `checksums.txt`. See the README for platform instructions.\n"
           Path("release-notes.md").write_text(notes)
           PY
       - uses: actions/upload-artifact@v7

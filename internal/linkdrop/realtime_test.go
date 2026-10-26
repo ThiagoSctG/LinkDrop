@@ -48,11 +48,11 @@ func (h *harness) dial(query url.Values, protocols ...string) (*socket, *http.Re
 
 func (h *harness) mustDial(query url.Values, key string) *socket {
 	h.t.Helper()
-	s, _, err := h.dial(query, "linkdrop.v2", key)
+	s, _, err := h.dial(query, "linkdrop.v3", key)
 	if err != nil {
 		h.t.Fatalf("dial: %v", err)
 	}
-	if s.conn.Subprotocol() != "linkdrop.v2" {
+	if s.conn.Subprotocol() != "linkdrop.v3" {
 		h.t.Fatalf("subprotocol = %q", s.conn.Subprotocol())
 	}
 	return s
@@ -98,13 +98,14 @@ func TestRealtimeRejectsUnauthenticatedConnections(t *testing.T) {
 		protocols []string
 		status    int
 	}{
-		{"no key", sessionQuery(sess), []string{"linkdrop.v2"}, http.StatusUnauthorized},
+		{"no key", sessionQuery(sess), []string{"linkdrop.v3"}, http.StatusUnauthorized},
 		{"no protocol", sessionQuery(sess), []string{sess.phone.EndpointKey}, http.StatusUnauthorized},
 		{"old protocol", sessionQuery(sess), []string{"linkdrop.v1", sess.phone.EndpointKey}, http.StatusUnauthorized},
-		{"wrong key", sessionQuery(sess), []string{"linkdrop.v2", "guess"}, http.StatusForbidden},
-		{"unknown session", url.Values{"sessionId": {"nope"}}, []string{"linkdrop.v2", sess.phone.EndpointKey}, http.StatusNotFound},
-		{"no target", url.Values{}, []string{"linkdrop.v2", sess.phone.EndpointKey}, http.StatusUnauthorized},
-		{"wrong pairing key", url.Values{"pairingToken": {sess.screen.Token}}, []string{"linkdrop.v2", "guess"}, http.StatusForbidden},
+		{"plaintext protocol", sessionQuery(sess), []string{"linkdrop.v2", sess.phone.EndpointKey}, http.StatusUnauthorized},
+		{"wrong key", sessionQuery(sess), []string{"linkdrop.v3", "guess"}, http.StatusForbidden},
+		{"unknown session", url.Values{"sessionId": {"nope"}}, []string{"linkdrop.v3", sess.phone.EndpointKey}, http.StatusNotFound},
+		{"no target", url.Values{}, []string{"linkdrop.v3", sess.phone.EndpointKey}, http.StatusUnauthorized},
+		{"wrong pairing key", url.Values{"pairingToken": {sess.screen.Token}}, []string{"linkdrop.v3", "guess"}, http.StatusForbidden},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
@@ -122,9 +123,9 @@ func TestRealtimeRejectsUnauthenticatedConnections(t *testing.T) {
 func TestRealtimeSendsSnapshotOnConnect(t *testing.T) {
 	h := newHarness(t)
 	sess := h.createSession()
-	h.addItem(sess, sess.phoneHeaders(), map[string]string{"content": "already here"})
+	h.addItem(sess, sess.phoneHeaders(), encryptedDraft())
 	m := h.mustDial(sessionQuery(sess), sess.phone.EndpointKey).next()
-	if m.Type != "session" || m.ID != sess.phone.SessionID || m.Role != "phone" || len(m.Items) != 1 || m.Items[0].Content != "already here" {
+	if m.Type != "session" || m.ID != sess.phone.SessionID || m.Role != "phone" || len(m.Items) != 1 || m.Items[0].Encrypted.Version != 1 {
 		t.Fatalf("snapshot = %s", m.raw)
 	}
 }
@@ -146,7 +147,7 @@ func TestRealtimePushesSnapshotsToBothEndpoints(t *testing.T) {
 	phone.next()
 	screen.next()
 
-	created := decode[item](t, h.addItem(sess, sess.screenHeaders(), map[string]string{"content": "https://example.com"}))
+	created := decode[item](t, h.addItem(sess, sess.screenHeaders(), encryptedDraft()))
 	for _, s := range []*socket{phone, screen} {
 		m := s.next()
 		if m.Type != "session" || len(m.Items) != 1 || m.Items[0].ID != created.ID {

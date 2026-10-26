@@ -1,3 +1,4 @@
+import { ContentError, decryptItem, encryptItem } from "./crypto";
 import { useEffect, useMemo, useRef, useState } from "preact/hooks";
 import type { TargetedEvent } from "preact";
 import { useNewItemAlert } from "./alerts";
@@ -112,32 +113,54 @@ export function Session({ connection, onEnded }: { connection: Connection; onEnd
     return () => clearTimeout(timer);
   }, [copyFeedback]);
 
-  useEffect(
-    () =>
-      connectRealtime({
-        query: { sessionId: connection.sessionId },
-        key: connection.endpointKey,
-        onOpen: () => setUnstable(false),
-        onMessage: (message) => {
-          if (message.type === "session") {
-            firstSeen.current ??= new Set(message.items.map((item) => item.id));
-            setItems(message.items);
-            alertNewItems(message.items);
-            const left = message.expiresInMs;
-            if (typeof left === "number") {
-              // The server sends a duration so a skewed device clock still counts down correctly.
-              setDeadline((previous) => ({ at: Date.now() + left, total: Math.max(previous?.total ?? 0, left) }));
-            }
-          } else if (message.type === "session_ended") end(message.reason);
-        },
-        onDrop: async () => {
-          setUnstable(true);
-          // The handshake hides why it failed; ask the API whether the session still exists.
-          if (isGone(await request(sessionPath(connection), { key: connection.endpointKey }))) end("gone");
-        },
-      }),
-    [connection.sessionId, connection.endpointKey],
-  );
+  useEffect(() => {
+    let active = true;
+    let revision = 0;
+    const stop = connectRealtime({
+      query: { sessionId: connection.sessionId },
+      key: connection.endpointKey,
+      onOpen: () => setUnstable(false),
+      onMessage: (message) => {
+        if (message.type === "session") {
+          const current = ++revision;
+          if (!Array.isArray(message.items)) {
+            setItems([]);
+            setError(errorMessage("encryption"));
+            return;
+          }
+          void Promise.all(message.items.map((item) => decryptItem(connection, item)))
+            .then((decoded) => {
+              if (!active || current !== revision || ended.current) return;
+              firstSeen.current ??= new Set(decoded.map((item) => item.id));
+              setItems(decoded);
+              setError((previous) => (previous === errorMessage("encryption") ? "" : previous));
+              alertNewItems(decoded);
+              const left = message.expiresInMs;
+              if (typeof left === "number") {
+                setDeadline((previous) => ({ at: Date.now() + left, total: Math.max(previous?.total ?? 0, left) }));
+              }
+            })
+            .catch(() => {
+              if (!active || current !== revision || ended.current) return;
+              setItems([]);
+              setError(errorMessage("encryption"));
+            });
+        } else if (message.type === "session_ended") {
+          ++revision;
+          end(message.reason);
+        }
+      },
+      onDrop: async () => {
+        setUnstable(true);
+        if (isGone(await request(sessionPath(connection), { key: connection.endpointKey }))) end("gone");
+      },
+    });
+    return () => {
+      active = false;
+      ++revision;
+      stop();
+    };
+  }, [connection.sessionId, connection.endpointKey, connection.encryptionKey]);
 
   const act = async ({ method, path, body, keepalive }: Action) => {
     setError("");
@@ -173,11 +196,14 @@ export function Session({ connection, onEnded }: { connection: Connection; onEnd
     const form = event.currentTarget;
     const data = new FormData(form);
     setSubmitState("sending");
-    const created = await act({
-      method: "POST",
-      path: "/items",
-      body: { title: data.get("title") ?? "", content: data.get("content") ?? "" },
-    });
+    let created = false;
+    try {
+      const body = await encryptItem(connection, String(data.get("title") ?? ""), String(data.get("content") ?? ""));
+      if (ended.current) return;
+      created = await act({ method: "POST", path: "/items", body });
+    } catch (error) {
+      setError(errorMessage(error instanceof ContentError ? error.code : "encryption"));
+    }
     if (created) {
       form.reset();
       setDraft("");
@@ -592,6 +618,7 @@ export function Session({ connection, onEnded }: { connection: Connection; onEnd
         <RejoinDialog
           sessionId={connection.sessionId}
           screenKey={connection.endpointKey}
+          encryptionKey={connection.encryptionKey}
           onClose={() => setShowRejoin(false)}
           onGone={() => end("gone")}
         />

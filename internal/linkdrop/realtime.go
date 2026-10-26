@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	realtimeProtocol = "linkdrop.v2"
+	realtimeProtocol = "linkdrop.v3"
 	pingInterval     = 30 * time.Second
 	writeTimeout     = 10 * time.Second
 )

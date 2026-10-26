@@ -19,4 +19,8 @@ Do not access other people's data, disrupt services or disclose the issue before
 
 ## Scope
 
-LinkDrop is designed to be self-hosted, and the server operator can read shared contents. Reports about the operator's ability to read data on their own instance are out of scope; see [Hosting and privacy](README.md#hosting-and-privacy).
+LinkDrop encrypts item titles and contents on the devices before transmission. The backend should receive neither plaintext items nor encryption keys. Reports of unintended key disclosure, plaintext transmission, authentication bypass or rendering unauthenticated ciphertext on a device are in scope. The backend can validate envelope structure, but it cannot authenticate the ciphertext without the devices' key.
+
+The host still delivers the web client. Modified JavaScript served by a malicious host, a compromised device or a browser extension can access plaintext and keys; E2EE cannot protect against that execution environment. Metadata and availability remain visible to the server. These boundaries, and the absence of forward secrecy, are documented in [Security and privacy](README.md#security-and-privacy) and [the encryption design](docs/encryption.md).
+
+HTTP access by LAN IP is supported for trusted local networks, with a transport notice. It encrypts items but cannot protect the delivered client or endpoint credentials from an active network attacker. Use HTTPS for public instances and untrusted networks.

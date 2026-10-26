@@ -34,7 +34,7 @@ export function hostOf(url: string): string {
   }
 }
 
-/** Mirrors the server's rule: only an absolute http(s) URL without spaces becomes a link. */
+/** Only an absolute http(s) URL without spaces becomes a link. */
 export function isLinkText(text: string): boolean {
   const trimmed = text.trim();
   if (!/^https?:\/\//i.test(trimmed) || /\s/.test(trimmed)) return false;

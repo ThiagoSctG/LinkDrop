@@ -1,5 +1,6 @@
 import { useEffect, useState } from "preact/hooks";
-import { detectLocale } from "./i18n";
+import { cryptoAvailable } from "./crypto";
+import { detectLocale, t } from "./i18n";
 import { PhoneApp } from "./phone";
 import { ScreenApp } from "./screen";
 
@@ -13,5 +14,24 @@ export function App() {
     document.documentElement.lang = detectLocale();
   }, []);
 
-  return route ? <PhoneApp token={route[1] ? decodeURIComponent(route[1]) : undefined} /> : <ScreenApp />;
+  if (!cryptoAvailable()) {
+    return (
+      <main className="phone-wait">
+        <section role="alert">
+          <h1>{t("security.title")}</h1>
+          <p>{t("error.crypto_unavailable")}</p>
+        </section>
+      </main>
+    );
+  }
+  return (
+    <>
+      {window.location.protocol === "http:" && (
+        <aside className="transport-notice" role="note">
+          {t("security.httpNotice")}
+        </aside>
+      )}
+      {route ? <PhoneApp token={route[1] ? decodeURIComponent(route[1]) : undefined} /> : <ScreenApp />}
+    </>
+  );
 }

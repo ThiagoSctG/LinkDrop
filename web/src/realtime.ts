@@ -1,9 +1,9 @@
-import type { EndReason, Item, Role } from "./api";
+import type { EndReason, EncryptedItem, Role } from "./api";
 
-export const REALTIME_PROTOCOL = "linkdrop.v2";
+export const REALTIME_PROTOCOL = "linkdrop.v3";
 
 export type ServerMessage =
-  | { type: "session"; id: string; role: Role; items: Item[]; expiresInMs?: number }
+  | { type: "session"; id: string; role: Role; items: EncryptedItem[]; expiresInMs?: number }
   | { type: "session_ended"; reason: Exclude<EndReason, "gone"> }
   | { type: "paired"; sessionId: string; endpointKey: string; role: "screen" }
   | { type: "pairing_expired" };

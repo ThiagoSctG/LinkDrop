@@ -1,4 +1,13 @@
 const ptBR = {
+  "security.title": "Criptografia indisponível",
+  "security.httpNotice":
+    "Conexão HTTP: os itens são criptografados, mas alguém na rede pode alterar o aplicativo e capturar os dados. Use apenas em uma rede de confiança; prefira HTTPS.",
+  "error.crypto_unavailable":
+    "Este navegador não oferece geração segura de chaves. Atualize o navegador para usar o LinkDrop.",
+  "error.encryption_key":
+    "Este link n\u00e3o cont\u00e9m uma chave de criptografia v\u00e1lida. Escaneie um novo QR Code na tela.",
+  "error.encryption":
+    "N\u00e3o foi poss\u00edvel verificar ou descriptografar os itens. Reconecte os dispositivos usando um novo QR Code.",
   "brand.home": "LinkDrop — voltar ao início",
   "theme.useDark": "Usar tema escuro",
   "theme.useLight": "Usar tema claro",
@@ -122,6 +131,12 @@ const ptBR = {
 export type MessageKey = keyof typeof ptBR;
 
 const en: Record<MessageKey, string> = {
+  "security.title": "Encryption unavailable",
+  "security.httpNotice":
+    "HTTP connection: items are encrypted, but someone on the network could change the app and capture your data. Use only on a trusted network; prefer HTTPS.",
+  "error.crypto_unavailable": "This browser cannot generate secure keys. Update your browser to use LinkDrop.",
+  "error.encryption_key": "This link has no valid encryption key. Scan a new QR code on the screen.",
+  "error.encryption": "Could not verify or decrypt the items. Reconnect the devices using a new QR code.",
   "brand.home": "LinkDrop — back to start",
   "theme.useDark": "Use dark theme",
   "theme.useLight": "Use light theme",

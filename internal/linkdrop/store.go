@@ -356,7 +356,13 @@ func (s *store) addItem(id, key string, d draft) (Item, *apiError) {
 	if len(sess.items) >= s.maxItems {
 		return Item{}, errSessionFull
 	}
-	item := Item{ID: newUUID(), Title: d.title, Content: d.content, Type: d.kind, CreatedAt: s.now().UTC()}
+	// IDs are authenticated as AES-GCM associated data on the devices.
+	for _, existing := range sess.items {
+		if existing.ID == d.ID {
+			return Item{}, errInvalidRequest
+		}
+	}
+	item := Item{ID: d.ID, Encrypted: d.Encrypted, CreatedAt: s.now().UTC()}
 	sess.items = slices.Insert(sess.items, 0, item)
 	s.changed(sess)
 	return item, nil

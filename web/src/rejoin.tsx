@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "preact/hooks";
 import QRCode from "qrcode";
+import { pairingWithKey } from "./crypto";
 import { type Pairing, isGone, request } from "./api";
 import { CloseIcon } from "./icons";
 import { t } from "./i18n";
@@ -10,12 +11,13 @@ import { connectRealtime } from "./realtime";
 export type RejoinDialogProps = {
   sessionId: string;
   screenKey: string;
+  encryptionKey: string;
   onClose: () => void;
   /** The Session ended before a code could be issued. */
   onGone: () => void;
 };
 
-export function RejoinDialog({ sessionId, screenKey, onClose, onGone }: RejoinDialogProps) {
+export function RejoinDialog({ sessionId, screenKey, encryptionKey, onClose, onGone }: RejoinDialogProps) {
   const [generation, setGeneration] = useState(0);
   const [pairing, setPairing] = useState<Pairing | null>(null);
   const [qr, setQr] = useState("");
@@ -39,7 +41,7 @@ export function RejoinDialog({ sessionId, screenKey, onClose, onGone }: RejoinDi
   useEffect(() => {
     let active = true;
     void (async () => {
-      const res = await request<Pairing>(`/api/sessions/${sessionId}/pairing`, {
+      const res = await request<Omit<Pairing, "encryptionKey">>(`/api/sessions/${sessionId}/pairing`, {
         method: "POST",
         key: screenKey,
       });
@@ -53,9 +55,10 @@ export function RejoinDialog({ sessionId, screenKey, onClose, onGone }: RejoinDi
         return;
       }
       try {
-        const svg = await QRCode.toString(res.data.pairingUrl, { type: "svg", margin: 1 });
+        const secured = pairingWithKey(res.data, encryptionKey);
+        const svg = await QRCode.toString(secured.pairingUrl, { type: "svg", margin: 1 });
         if (!active) return;
-        setPairing(res.data);
+        setPairing(secured);
         setQr(`data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`);
       } catch {
         if (!active) return;
@@ -65,7 +68,7 @@ export function RejoinDialog({ sessionId, screenKey, onClose, onGone }: RejoinDi
     return () => {
       active = false;
     };
-  }, [sessionId, screenKey, generation]);
+  }, [sessionId, screenKey, encryptionKey, generation]);
 
   useEffect(() => {
     if (!pairing || connected || expired) return;

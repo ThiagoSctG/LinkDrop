@@ -1,7 +1,14 @@
 export type Role = "screen" | "phone";
 export type Item = { id: string; title?: string; content: string; type: "link" | "text"; createdAt: string };
-export type Connection = { sessionId: string; endpointKey: string; role: Role };
-export type Pairing = { token: string; screenKey: string; pairingUrl: string; expiresAt: string };
+export type EncryptedItem = { id: string; encrypted: { v: 1; iv: string; data: string }; createdAt: string };
+export type Connection = { sessionId: string; endpointKey: string; role: Role; encryptionKey: string };
+export type Pairing = {
+  token: string;
+  screenKey: string;
+  pairingUrl: string;
+  expiresAt: string;
+  encryptionKey: string;
+};
 
 /** Why a session ended: the server's reasons, or "gone" when the API no longer knows it. */
 export type EndReason = "ended" | "expired" | "server_restart" | "gone" | "replaced";

@@ -1,79 +1,56 @@
 package linkdrop
 
 import (
+	"bytes"
+	"encoding/base64"
 	"encoding/json"
-	"net/url"
-	"strings"
+	"io"
+	"regexp"
 	"time"
-	"unicode"
-	"unicode/utf8"
 )
 
-type ItemType string
-
-const (
-	ItemLink ItemType = "link"
-	ItemNote ItemType = "text"
-)
-
-const (
-	maxContentChars = 10_000
-	maxTitleChars   = 200
-)
+// EncryptedContent is opaque to the server. Keys and plaintext stay on devices.
+type EncryptedContent struct {
+	Version int    `json:"v"`
+	IV      string `json:"iv"`
+	Data    string `json:"data"`
+}
 
 type Item struct {
-	ID        string    `json:"id"`
-	Title     string    `json:"title,omitempty"`
-	Content   string    `json:"content"`
-	Type      ItemType  `json:"type"`
-	CreatedAt time.Time `json:"createdAt"`
+	ID        string           `json:"id"`
+	Encrypted EncryptedContent `json:"encrypted"`
+	CreatedAt time.Time        `json:"createdAt"`
 }
 
 type draft struct {
-	title   string
-	content string
-	kind    ItemType
+	ID        string           `json:"id"`
+	Encrypted EncryptedContent `json:"encrypted"`
 }
 
-// parseDraft validates a request body. Only http(s) URLs become links; everything
-// else, including other schemes like javascript:, is kept as plain text.
+const maxCiphertextBytes = 65_536
+
+var itemIDPattern = regexp.MustCompile(`^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$`)
+
+// Only versioned ciphertext envelopes are accepted. Legacy plaintext is rejected.
+// Content/title length and URL classification are enforced on the devices.
 func parseDraft(body []byte) (draft, *apiError) {
-	var input struct {
-		Title   *string `json:"title"`
-		Content *string `json:"content"`
-	}
-	if err := json.Unmarshal(body, &input); err != nil || input.Content == nil {
+	var input draft
+	decoder := json.NewDecoder(bytes.NewReader(body))
+	decoder.DisallowUnknownFields()
+	if decoder.Decode(&input) != nil || decoder.Decode(new(any)) != io.EOF || !itemIDPattern.MatchString(input.ID) || input.Encrypted.Version != 1 {
 		return draft{}, errInvalidRequest
 	}
-	content := *input.Content
-	trimmed := strings.TrimSpace(content)
-	if trimmed == "" {
-		return draft{}, errContentEmpty
+	e := input.Encrypted
+	if len(e.IV) != 16 || len(e.Data) < 22 || len(e.Data) > base64.RawURLEncoding.EncodedLen(maxCiphertextBytes) {
+		return draft{}, errInvalidRequest
 	}
-	if utf8.RuneCountInString(content) > maxContentChars {
-		return draft{}, errContentLong
+	iv, err := base64.RawURLEncoding.Strict().DecodeString(e.IV)
+	if err != nil || len(iv) != 12 || base64.RawURLEncoding.EncodeToString(iv) != e.IV {
+		return draft{}, errInvalidRequest
 	}
-	var title string
-	if input.Title != nil {
-		title = strings.TrimSpace(*input.Title)
-		if utf8.RuneCountInString(title) > maxTitleChars {
-			return draft{}, errTitleLong
-		}
+	ciphertext, err := base64.RawURLEncoding.Strict().DecodeString(e.Data)
+	if err != nil || len(ciphertext) < 16 || len(ciphertext) > maxCiphertextBytes || base64.RawURLEncoding.EncodeToString(ciphertext) != e.Data {
+		return draft{}, errInvalidRequest
 	}
-	if isLink(trimmed) {
-		return draft{title: title, content: trimmed, kind: ItemLink}, nil
-	}
-	return draft{title: title, content: content, kind: ItemNote}, nil
-}
-
-func isLink(s string) bool {
-	lower := strings.ToLower(s)
-	if !strings.HasPrefix(lower, "http://") && !strings.HasPrefix(lower, "https://") {
-		return false
-	}
-	if strings.IndexFunc(s, unicode.IsSpace) >= 0 {
-		return false
-	}
-	u, err := url.Parse(s)
-	return err == nil && u.Host != ""
+	return input, nil
 }

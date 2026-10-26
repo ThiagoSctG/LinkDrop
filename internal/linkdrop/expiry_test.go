@@ -21,7 +21,7 @@ func TestExplicitActionsRenewActivity(t *testing.T) {
 			expectStatus(t, h.do("POST", "/api/sessions/"+sess.phone.SessionID+"/activity", sess.phoneHeaders(), nil), http.StatusNoContent)
 		},
 		"add": func(h *harness, sess session) {
-			expectStatus(t, h.addItem(sess, sess.phoneHeaders(), map[string]string{"content": "x"}), http.StatusCreated)
+			expectStatus(t, h.addItem(sess, sess.phoneHeaders(), encryptedDraft()), http.StatusCreated)
 		},
 		"remove": func(h *harness, sess session) {
 			expectStatus(t, h.do("DELETE", "/api/sessions/"+sess.phone.SessionID+"/items/missing", sess.phoneHeaders(), nil), http.StatusNoContent)
@@ -49,5 +49,5 @@ func TestExpiredSessionRejectsMutations(t *testing.T) {
 	sess := h.createSession()
 	h.clock.Advance(30 * time.Minute)
 	expectCode(t, h.do("POST", "/api/sessions/"+sess.phone.SessionID+"/activity", sess.phoneHeaders(), nil), http.StatusNotFound, "not_found")
-	expectCode(t, h.addItem(sess, sess.phoneHeaders(), map[string]string{"content": "x"}), http.StatusNotFound, "not_found")
+	expectCode(t, h.addItem(sess, sess.phoneHeaders(), encryptedDraft()), http.StatusNotFound, "not_found")
 }

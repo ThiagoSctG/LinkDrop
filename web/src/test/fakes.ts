@@ -1,5 +1,40 @@
 import { waitFor } from "@testing-library/preact";
 import { vi } from "vitest";
+import type { EncryptedItem, Item } from "../api";
+import { decryptItem } from "../crypto";
+
+export const TEST_KEY = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA";
+export async function sentPlaintext(body: unknown) {
+  return decryptItem(
+    { sessionId: "s1", endpointKey: "test", role: "phone", encryptionKey: TEST_KEY },
+    body as EncryptedItem,
+  );
+}
+
+async function encryptFixture(item: Item, sessionId: string): Promise<EncryptedItem> {
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const key = await crypto.subtle.importKey("raw", new Uint8Array(32), "AES-GCM", false, ["encrypt"]);
+  const data = await crypto.subtle.encrypt(
+    {
+      name: "AES-GCM",
+      iv,
+      additionalData: new TextEncoder().encode(JSON.stringify(["linkdrop.item.v1", sessionId, item.id])),
+      tagLength: 128,
+    },
+    key,
+    new TextEncoder().encode(JSON.stringify({ title: item.title ?? "", content: item.content })),
+  );
+  const encode = (bytes: Uint8Array) =>
+    btoa(String.fromCharCode(...bytes))
+      .replace(/\+/g, "-")
+      .replace(/\//g, "_")
+      .replace(/=+$/, "");
+  return {
+    id: item.id,
+    createdAt: item.createdAt,
+    encrypted: { v: 1, iv: encode(iv), data: encode(new Uint8Array(data)) },
+  };
+}
 
 type Handler = (request: {
   body: unknown;
@@ -82,7 +117,26 @@ export class FakeWebSocket {
     this.onopen?.(new Event("open"));
   }
 
+  private delivery = Promise.resolve();
   receive(message: unknown) {
+    const snapshot = message as { type: string; id: string; items?: Item[] };
+    // UI fixtures stay readable in tests; the simulated wire carries real ciphertext.
+    if (snapshot.type !== "session") {
+      this.receiveRaw(message);
+      return Promise.resolve();
+    }
+    this.delivery = this.delivery.then(async () => {
+      if (snapshot.type === "session" && snapshot.items) {
+        message = {
+          ...snapshot,
+          items: await Promise.all(snapshot.items.map((item) => encryptFixture(item, snapshot.id))),
+        };
+      }
+      this.receiveRaw(message);
+    });
+    return this.delivery;
+  }
+  receiveRaw(message: unknown) {
     this.onmessage?.(new MessageEvent("message", { data: JSON.stringify(message) }));
   }
 
@@ -105,5 +159,5 @@ export function setLanguage(language: string) {
 }
 
 export function visit(path: string) {
-  window.history.replaceState(null, "", path);
+  window.history.replaceState(null, "", /^\/pair\/[^/#]+$/.test(path) ? `${path}#key=${TEST_KEY}` : path);
 }
