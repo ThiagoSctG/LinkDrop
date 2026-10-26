@@ -26,7 +26,8 @@ export function App() {
   }
   return (
     <>
-      {window.location.protocol === "http:" && (
+      {/* Loopback HTTP is a secure context; only reachable plain HTTP needs the warning. */}
+      {window.location.protocol === "http:" && !window.isSecureContext && (
         <aside className="transport-notice" role="note">
           {t("security.httpNotice")}
         </aside>

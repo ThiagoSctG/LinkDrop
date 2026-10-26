@@ -53,8 +53,8 @@ describe("screen", () => {
     render(<App />);
 
     expect(await screen.findByAltText("QR Code para conectar o celular ao LinkDrop")).toBeTruthy();
-    expect(screen.getByRole("button", { name: "Copiar link de acesso" })).toBeTruthy();
-    expect(screen.getByText("O código é renovado automaticamente.")).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Copiar link" })).toBeTruthy();
+    expect(screen.getByText("Renova em 2:00")).toBeTruthy();
     const socket = await FakeWebSocket.next("pairingToken", "tok1");
     expect(socket.url.pathname).toBe("/api/realtime");
     expect(socket.protocols).toEqual(["linkdrop.v3", "screen-key"]);
@@ -84,7 +84,7 @@ describe("screen", () => {
       role: "screen",
     });
 
-    expect((await screen.findByRole("status")).textContent).toBe("Celular conectado!");
+    expect((await screen.findByRole("status")).textContent).toBe("Celular conectado");
     await vi.advanceTimersByTimeAsync(CONNECTED_MS);
     expect(await screen.findByText("Tela conectada")).toBeTruthy();
     const sessionSocket = await FakeWebSocket.next("sessionId", "s1");

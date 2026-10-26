@@ -2,6 +2,13 @@
 
 ## [Unreleased]
 
+- Keep an item's time on one line on narrow phones; the kind label stays available to screen readers.
+- Show the HTTP notice only outside a secure context, so `localhost` no longer shows it.
+- Drop decorative labels and effects from the pairing screen: the "ready" and "temporary code" badges, the scanner corners and scan line, and the uppercase kind label on items.
+- Show item content first with its time underneath, and notes as plain text instead of a box inside the row.
+- Make the ended-session notice neutral: a check when you ended it yourself, an information mark otherwise.
+- Shorten interface text: "Copy link", no exclamation marks, no repeated renewal note, and a footer that states what is actually protected.
+
 ## [0.1.0] - 2026-10-26
 
 First public release of LinkDrop.

@@ -917,7 +917,7 @@ describe("phone rejoin from screen", () => {
     const qrUrl = new URL(String(qr.mock.calls.at(-1)![0]));
     expect(qrUrl.origin).toBe(window.location.origin);
     expect(qrUrl.hash).toBe(`#key=${TEST_KEY}`);
-    expect(within(dialog).getByRole("button", { name: "Copiar link de acesso" })).toBeTruthy();
+    expect(within(dialog).getByRole("button", { name: "Copiar link" })).toBeTruthy();
 
     const pairingSocket = await FakeWebSocket.next("pairingToken", "rejoin-tok");
     pairingSocket.open();
@@ -928,7 +928,7 @@ describe("phone rejoin from screen", () => {
       role: "screen",
     });
 
-    expect(await within(dialog).findByText("Celular conectado!")).toBeTruthy();
+    expect(await within(dialog).findByText("Celular conectado")).toBeTruthy();
     await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
   });
 
@@ -979,7 +979,6 @@ describe("phone rejoin from screen", () => {
 
     expect(await within(dialog).findByText(/^Expira em /)).toBeTruthy();
     expect(within(dialog).queryByText(/Renova em/)).toBeNull();
-    expect(within(dialog).queryByText("O código é renovado automaticamente.")).toBeNull();
   });
 
   it("ends the session when it is gone before a code can be issued", async () => {
@@ -1016,7 +1015,7 @@ describe("phone rejoin from screen", () => {
       role: "screen",
     });
     const dialog = await screen.findByRole("dialog");
-    expect(await within(dialog).findByText("Celular conectado!")).toBeTruthy();
+    expect(await within(dialog).findByText("Celular conectado")).toBeTruthy();
 
     fireEvent.click(within(dialog).getByRole("button", { name: "Fechar reconexão" }));
     await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());

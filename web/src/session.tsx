@@ -332,10 +332,6 @@ export function Session({ connection, onEnded }: { connection: Connection; onEnd
           </span>
         )}
         <div className="item-body">
-          <p className="item-meta">
-            <span className="item-type">{isLink ? t("item.link") : t("item.note")}</span>
-            <time dateTime={item.createdAt}>{timeAgo(item.createdAt, now)}</time>
-          </p>
           {heading && <h3>{heading}</h3>}
           {isLink ? (
             detail &&
@@ -347,6 +343,10 @@ export function Session({ connection, onEnded }: { connection: Connection; onEnd
           ) : (
             <pre>{item.content}</pre>
           )}
+          <p className="item-meta">
+            <span className="item-type">{isLink ? t("item.link") : t("item.note")}</span>
+            <time dateTime={item.createdAt}>{timeAgo(item.createdAt, now)}</time>
+          </p>
         </div>
         <div className="item-actions">
           {isLink && (

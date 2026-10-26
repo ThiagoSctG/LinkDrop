@@ -2,8 +2,8 @@ import QRCode from "qrcode";
 import { createEncryptionKey, pairingWithKey } from "./crypto";
 import { useEffect, useRef, useState } from "preact/hooks";
 import { type Connection, type EndReason, type Pairing, isGone, request } from "./api";
-import { StatusPill, TopBar } from "./chrome";
-import { AlertIcon, ClipboardIcon, CloseIcon, ExternalLinkIcon, QrIcon, ShieldIcon } from "./icons";
+import { TopBar } from "./chrome";
+import { AlertIcon, CheckIcon, ClipboardIcon, CloseIcon, ExternalLinkIcon, QrIcon, ShieldIcon } from "./icons";
 import { t } from "./i18n";
 import { CONNECTED_MS, PairingDisplay } from "./pairing-display";
 import { connectRealtime } from "./realtime";
@@ -146,8 +146,9 @@ function PairingView({
       <section className="pairing-layout">
         <div className="pairing-intro">
           {endedReason && (
-            <div className="notice">
-              <AlertIcon />
+            // Ending it yourself is a confirmation; any other reason is information, not a warning.
+            <div className={endedReason === "ended" ? "notice notice-done" : "notice"}>
+              {endedReason === "ended" ? <CheckIcon /> : <AlertIcon />}
               <p role="status">{t(`ended.${endedReason}`)}</p>
               <button
                 className="notice-dismiss"
@@ -160,7 +161,6 @@ function PairingView({
               </button>
             </div>
           )}
-          <StatusPill>{connected ? t("pairing.connected") : t("pairing.status")}</StatusPill>
           <h1>
             {t("pairing.title")} <mark>{t("pairing.titleMark")}</mark>
           </h1>
@@ -189,7 +189,6 @@ function PairingView({
         <div className="qr-panel panel">
           <div className="qr-heading">
             <strong>{t("pairing.connectPhone")}</strong>
-            <span className="badge">{t("pairing.temporary")}</span>
           </div>
           <PairingDisplay
             pairing={pairing}
@@ -204,10 +203,8 @@ function PairingView({
       <footer className="waiting-footer">
         <span>
           <ShieldIcon size={15} />
-          {t("pairing.footerTemporary")}
+          {t("pairing.footer")}
         </span>
-        <span>{t("pairing.footerNoAccount")}</span>
-        <span>{t("pairing.footerRemoved")}</span>
       </footer>
     </main>
   );

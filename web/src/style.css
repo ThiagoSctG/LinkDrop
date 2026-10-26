@@ -27,9 +27,6 @@
   --danger-hover: #9a1c1c;
   --danger-soft: #fbeaea;
   --success: #25a05a;
-  --warning-soft: #fdf3d7;
-  --warning-line: #ecd590;
-  --warning-ink: #6b4a00;
   --focus: #1a6a46;
   --toast-bg: #0b130e;
   --toast-ink: #f3f8f4;
@@ -38,8 +35,6 @@
   --dots: rgb(11 19 14 / 8%);
   --qr-glow: rgb(184 243 74 / 55%);
   --composer-glow: 0 0 #0000;
-  --note-bg: #faf7ec;
-  --note-line: #ebe2c4;
   --panel-highlight: 0 0 #0000;
   --shadow-sm: 0 1px 2px rgb(11 19 14 / 6%), 0 4px 12px -4px rgb(11 19 14 / 8%);
   --shadow-md: 0 2px 4px rgb(11 19 14 / 6%), 0 12px 28px -8px rgb(11 19 14 / 16%);
@@ -68,9 +63,6 @@
   --danger-hover: #ffb3b3;
   --danger-soft: #3a2020;
   --success: #4cd07f;
-  --warning-soft: #241e0c;
-  --warning-line: #4a3d17;
-  --warning-ink: #f2d27c;
   --focus: #b8f34a;
   --toast-bg: #eff5f0;
   --toast-ink: #0b130e;
@@ -79,8 +71,6 @@
   --dots: rgb(239 245 240 / 6%);
   --qr-glow: rgb(184 243 74 / 22%);
   --composer-glow: 0 30px 80px -40px rgb(184 243 74 / 28%);
-  --note-bg: #16170f;
-  --note-line: #2c2b1c;
   --panel-highlight: inset 0 1px 0 rgb(255 255 255 / 4%);
   --shadow-sm: 0 0 #0000;
   --shadow-md: 0 8px 24px -8px rgb(0 0 0 / 60%);
@@ -312,15 +302,6 @@ progress::-moz-progress-bar {
   animation: beacon 2.4s ease-in-out infinite;
 }
 
-.badge {
-  padding: 0.2rem 0.6rem;
-  border-radius: 999px;
-  background: var(--accent-soft);
-  color: var(--brand);
-  font-size: 0.72rem;
-  font-weight: 700;
-}
-
 /* ---------- Buttons ---------- */
 
 .button {
@@ -437,10 +418,6 @@ progress::-moz-progress-bar {
   gap: clamp(2.5rem, 7vw, 6.5rem);
 }
 
-.pairing-intro .status-pill {
-  margin-bottom: 1.5rem;
-}
-
 .pairing-intro h1,
 .phone-wait h1 {
   max-width: 14ch;
@@ -552,42 +529,6 @@ progress::-moz-progress-bar {
   border: 1px solid var(--line);
 }
 
-.qr-frame::before {
-  content: "";
-  position: absolute;
-  inset: 5px;
-  pointer-events: none;
-  background:
-    linear-gradient(#1a6a46, #1a6a46) top left / 22px 3px,
-    linear-gradient(#1a6a46, #1a6a46) top left / 3px 22px,
-    linear-gradient(#1a6a46, #1a6a46) top right / 22px 3px,
-    linear-gradient(#1a6a46, #1a6a46) top right / 3px 22px,
-    linear-gradient(#1a6a46, #1a6a46) bottom left / 22px 3px,
-    linear-gradient(#1a6a46, #1a6a46) bottom left / 3px 22px,
-    linear-gradient(#1a6a46, #1a6a46) bottom right / 22px 3px,
-    linear-gradient(#1a6a46, #1a6a46) bottom right / 3px 22px;
-  background-repeat: no-repeat;
-}
-
-/*
- * A lime line sweeps the code while it waits to be scanned. The QR frame is white in both themes,
- * so this and the "connected" overlay use fixed colors rather than theme tokens.
- */
-.qr-frame-ready::after {
-  content: "";
-  position: absolute;
-  top: 14px;
-  left: 14px;
-  right: 14px;
-  height: 3px;
-  border-radius: 3px;
-  background: linear-gradient(90deg, transparent, #b8f34a 20% 80%, transparent);
-  box-shadow: 0 0 14px 2px rgb(184 243 74 / 55%);
-  opacity: 0.85;
-  pointer-events: none;
-  animation: scan 3s ease-in-out infinite alternate;
-}
-
 .qr-frame-connected img {
   filter: blur(3px);
   opacity: 0.45;
@@ -664,14 +605,6 @@ progress::-moz-progress-bar {
   width: 100%;
 }
 
-.qr-note {
-  display: block;
-  margin-top: 0.75rem;
-  color: var(--muted);
-  font-size: 0.78rem;
-  text-align: center;
-}
-
 .pairing-error p {
   margin-bottom: 0.75rem;
   color: var(--danger);
@@ -695,15 +628,6 @@ progress::-moz-progress-bar {
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
-}
-
-.waiting-footer span + span::before {
-  content: "";
-  width: 3px;
-  height: 3px;
-  margin-right: 0.85rem;
-  border-radius: 50%;
-  background: var(--line-strong);
 }
 
 /* ---------- Phone waiting / errors ---------- */
@@ -1103,10 +1027,16 @@ textarea {
 }
 
 .notice {
+  width: fit-content;
+  max-width: 100%;
   align-items: center;
-  border: 1px solid var(--warning-line);
-  background: var(--warning-soft);
-  color: var(--warning-ink);
+  margin-bottom: 1.5rem;
+  padding: 0.65rem 0.75rem 0.65rem 0.9rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  box-shadow: var(--panel-highlight), var(--shadow-sm);
+  color: var(--ink);
   font-weight: 600;
 }
 
@@ -1116,6 +1046,11 @@ textarea {
 
 .notice .icon {
   margin-top: 0;
+  color: var(--muted);
+}
+
+.notice-done .icon {
+  color: var(--success);
 }
 
 .notice-dismiss {
@@ -1124,17 +1059,23 @@ textarea {
   flex: none;
   display: grid;
   place-items: center;
-  margin: -0.3rem -0.4rem -0.3rem 0;
+  margin: -0.3rem -0.2rem -0.3rem 0.4rem;
   padding: 0;
   border: 0;
   border-radius: 8px;
   background: transparent;
-  color: inherit;
+  color: var(--muted);
   cursor: pointer;
 }
 
 .notice-dismiss:hover {
-  background: color-mix(in srgb, var(--warning-ink) 12%, transparent);
+  background: var(--surface-subtle);
+  color: var(--ink);
+}
+
+/* The dismiss icon is the button's own, not the notice's leading mark. */
+.notice .notice-dismiss .icon {
+  color: inherit;
 }
 
 .items {
@@ -1277,16 +1218,9 @@ textarea {
   --avatar-hue: 42;
 }
 
-.item-note .item-icon {
-  background: var(--note-bg);
-  box-shadow: inset 0 0 0 1px var(--note-line);
-}
 .item-note pre {
-  margin-top: 0.5rem;
-  padding: 0.75rem 0.9rem;
-  border: 1px solid var(--note-line);
-  border-radius: var(--radius-sm);
-  background: var(--note-bg);
+  font-size: 1.05rem;
+  font-weight: 550;
 }
 
 .item-icon-link {
@@ -1303,39 +1237,39 @@ textarea {
   flex-wrap: wrap;
   align-items: center;
   gap: 0.25rem 0.5rem;
+  margin-top: 0.35rem;
   color: var(--muted);
   font-size: 0.75rem;
   font-weight: 600;
 }
 
-.item-meta > * + *::before {
-  content: "·";
-  margin-right: 0.5rem;
-  color: var(--line-strong);
-}
-
+/* The icon already shows an item's kind on screen; the label stays for screen readers. */
 .item-type {
-  color: var(--brand);
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  font-size: 0.7rem;
-  font-weight: 800;
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
 }
 
 .item h3 {
-  margin-top: 0.3rem;
   font-size: 1.05rem;
   font-weight: 750;
   letter-spacing: -0.02em;
 }
 
 .item pre {
-  margin: 0.3rem 0 0;
+  margin: 0;
   white-space: pre-wrap;
   overflow-wrap: anywhere;
   font: inherit;
   color: var(--ink);
   line-height: 1.55;
+}
+
+.item h3 + pre {
+  margin-top: 0.25rem;
 }
 
 .item-url {
@@ -1721,12 +1655,6 @@ textarea {
   }
 }
 
-@keyframes scan {
-  to {
-    top: calc(100% - 17px);
-  }
-}
-
 @keyframes pop {
   0% {
     transform: scale(0.4);
@@ -1910,9 +1838,6 @@ textarea {
   .waiting-footer span {
     width: 100%;
   }
-  .waiting-footer span + span::before {
-    content: none;
-  }
   /*
    * Compact rows: a small icon, the meta line and the actions (icons only) share the first row.
    * Labels stay for screen readers.
@@ -1938,6 +1863,14 @@ textarea {
     grid-row: 1;
     grid-column: 2;
     align-self: center;
+    margin-top: 0;
+    flex-wrap: nowrap;
+    min-width: 0;
+    white-space: nowrap;
+  }
+  .item-meta time {
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
   .item-actions {
     grid-row: 1;
@@ -2005,10 +1938,6 @@ textarea {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  /* A frozen scan line would only cover part of the code. */
-  .qr-frame-ready::after {
-    display: none;
-  }
   *,
   *::before,
   *::after {

@@ -105,11 +105,6 @@ export function PairingDisplay({
                 ? t("pairing.copyFailed")
                 : t("pairing.copyLink")}
           </button>
-          {autoRenews && (
-            <small className="qr-note" aria-live="polite">
-              {t("pairing.renews")}
-            </small>
-          )}
         </>
       )}
     </>
