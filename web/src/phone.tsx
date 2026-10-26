@@ -67,7 +67,7 @@ export function PhoneApp({ token }: { token?: string }) {
       <TopBar homeLink={false} />
       <section>
         <div className={problem ? "status-symbol status-error" : "status-symbol status-loading"} aria-hidden="true">
-          {problem ? <AlertIcon size={26} /> : <BrandIcon size={26} />}
+          {problem ? <AlertIcon size={26} /> : <BrandIcon size={72} />}
         </div>
         <h1>{heading}</h1>
         <p role={state.kind === "failed" ? "alert" : undefined}>{detail}</p>

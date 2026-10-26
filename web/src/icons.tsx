@@ -1,4 +1,5 @@
 import type { ComponentChildren } from "preact";
+import { useId } from "preact/hooks";
 
 export type IconProps = { size?: number };
 
@@ -163,12 +164,43 @@ export const ShieldIcon = (p: IconProps) => (
   </Icon>
 );
 
-/** The brand mark: two arrows passing through a drop of content. */
-export const BrandIcon = (p: IconProps) => (
-  <Icon {...p} size={p.size ?? 20}>
-    <path d="M7 17 17 7M9 7h8v8" stroke-width="2.25" />
-  </Icon>
-);
+/** The brand mark: a D with a slanted cut on a dark tile. Same artwork as docs/images/logo.svg. */
+export function BrandIcon({ size = 36 }: IconProps) {
+  // Gradient ids must be unique in the document.
+  const id = useId();
+  return (
+    <svg width={size} height={size} viewBox="0 0 32 32" aria-hidden="true" focusable="false">
+      <defs>
+        <linearGradient id={`${id}t`} x1="0" y1="0" x2="1" y2="1">
+          <stop stop-color="#121c0e" />
+          <stop offset="1" stop-color="#080d0a" />
+        </linearGradient>
+        <linearGradient id={`${id}s`} x1="7" y1="5" x2="25" y2="28" gradientUnits="userSpaceOnUse">
+          <stop stop-color="#d2ff79" />
+          <stop offset="0.38" stop-color="#b8f34a" />
+          <stop offset="0.72" stop-color="#55d977" />
+          <stop offset="1" stop-color="#1a6a46" />
+        </linearGradient>
+      </defs>
+      <rect
+        x="0.25"
+        y="0.25"
+        width="31.5"
+        height="31.5"
+        rx="7"
+        fill={`url(#${id}t)`}
+        stroke="#253720"
+        stroke-width="0.5"
+      />
+      <path
+        transform="translate(2 2) scale(0.875)"
+        fill={`url(#${id}s)`}
+        fill-rule="evenodd"
+        d="M9 6h7c7 0 11 3.8 11 10s-4 10-11 10H9a2 2 0 0 1-2-2v-4l6-1.5v2.4h3c3.3 0 5.2-1.4 5.2-4.9s-1.9-4.9-5.2-4.9h-3v2.4L7 15V8a2 2 0 0 1 2-2Z"
+      />
+    </svg>
+  );
+}
 
 export const ExpandIcon = (p: IconProps) => (
   <Icon {...p}>
