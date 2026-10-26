@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 
 # Frontend: platform-independent static files.
-FROM --platform=$BUILDPLATFORM node:22-alpine AS web
+FROM --platform=$BUILDPLATFORM node:26-alpine AS web
 WORKDIR /src
 COPY package.json package-lock.json ./
 RUN npm ci
