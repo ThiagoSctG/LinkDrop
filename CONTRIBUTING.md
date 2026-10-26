@@ -43,7 +43,7 @@ The terms code, tests, issues and docs use for LinkDrop's concepts. UI text is t
 
 ## Local setup
 
-Requirements: Go 1.26.10+ and Node.js 22+.
+Requirements: Go 1.27.3+ and Node.js 22+.
 
 ```bash
 npm ci

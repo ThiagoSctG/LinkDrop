@@ -73,7 +73,7 @@ Relate vulnerabilidades de forma privada, como descrito no [SECURITY.md](SECURIT
 
 ## Desenvolvimento
 
-Requer Go 1.26.10+ e Node.js 22+.
+Requer Go 1.27.3+ e Node.js 22+.
 
 ```bash
 npm ci && npm run build
