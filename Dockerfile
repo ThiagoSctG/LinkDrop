@@ -10,7 +10,7 @@ COPY web ./web
 RUN npm run build
 
 # Server: cross-compiled static binary with the frontend embedded.
-FROM --platform=$BUILDPLATFORM golang:1.26.10-alpine AS server
+FROM --platform=$BUILDPLATFORM golang:1.27.3-alpine AS server
 ARG TARGETOS
 ARG TARGETARCH
 ARG VERSION=dev
