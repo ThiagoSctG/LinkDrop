@@ -1,25 +1,25 @@
-name: Sugerir uma melhoria
-description: Proponha uma melhoria para o produto ou para o projeto.
-title: "[Melhoria]: "
+name: Feature request
+description: Suggest an improvement to LinkDrop or the project.
+title: "[Feature]: "
 labels:
   - enhancement
 body:
   - type: textarea
     id: problem
     attributes:
-      label: Problema
-      description: Que necessidade ou dificuldade esta proposta resolve?
+      label: Problem
+      description: What need or difficulty does this proposal address?
     validations:
       required: true
   - type: textarea
     id: proposal
     attributes:
-      label: Proposta
-      description: Como você imagina que isso deveria funcionar?
+      label: Proposal
+      description: How do you imagine it working?
     validations:
       required: true
   - type: textarea
     id: alternatives
     attributes:
-      label: Alternativas consideradas
-      description: Existem outras soluções ou contornos possíveis?
+      label: Alternatives considered
+      description: Are there other solutions or workarounds?

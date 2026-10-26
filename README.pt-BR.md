@@ -1,77 +1,88 @@
+<div align="center">
+
+<img src="docs/images/logo.svg" width="72" height="72" alt="">
+
 # LinkDrop
+
+**Passe links e notas entre o computador e o celular. Escaneie um QR Code e compartilhe uma lista ao vivo. Sem login, nada guardado.**
+
+[![CI](https://github.com/ThiagoSctG/LinkDrop/actions/workflows/ci.yml/badge.svg)](https://github.com/ThiagoSctG/LinkDrop/actions/workflows/ci.yml)
+[![Release](https://img.shields.io/github/v/release/ThiagoSctG/LinkDrop?sort=semver)](https://github.com/ThiagoSctG/LinkDrop/releases/latest)
+[![Licença: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
 [English](README.md) · **Português**
 
-Compartilhe links e textos entre uma tela e um celular sem login, mensageiros ou histórico permanente.
+</div>
 
-A tela exibe um QR Code temporário. Ao escaneá-lo, o celular entra na mesma sessão e os dois dispositivos passam a compartilhar uma lista em tempo real. A sessão expira após 30 minutos sem atividade e tudo é apagado quando ela termina.
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/images/hero-dark.png">
+  <img src="docs/images/hero-light.png" alt="LinkDrop em um computador e em um celular exibindo a mesma lista de links e notas">
+</picture>
+
+## Por que o LinkDrop?
+
+Levar um link do celular para a tela da sala de reunião, ou uma nota do notebook para o celular, normalmente significa mandar um e-mail para si mesmo ou entrar em um aplicativo de mensagens num computador que não é seu. O LinkDrop elimina esse passo: abra no computador, escaneie o QR Code, e os dois dispositivos compartilham uma lista até você encerrar a sessão.
 
 ## Recursos
 
-- Pareamento por QR Code ou link copiável
-- Links e notas com título opcional, atualizados ao vivo nos dois dispositivos
-- Só links `http(s)` são clicáveis; todo o resto é texto
-- Sem conta e sem banco de dados: o estado fica em memória e some com a sessão
-- Um único binário de cerca de 10 MB, ou uma imagem de contêiner de cerca de 16 MB (amd64 e arm64)
-- Temas claro e escuro, interface em português e inglês
-- Limite de requisições, Content Security Policy estrita e nenhum conteúdo nos logs
+- **Pareamento por QR Code** temporário. Sem contas e sem instalar aplicativo.
+- **Lista ao vivo nos dois sentidos**, com links e notas e título opcional.
+- **Feito para telas compartilhadas**: exiba um link como QR Code grande ou uma nota em tela cheia.
+- **Efêmero**: tudo fica em memória e é apagado quando a sessão termina ou após 30 minutos sem atividade.
+- **Auto-hospedado e leve**: um binário de ~7 MB ou uma imagem de contêiner multiarquitetura, temas claro e escuro, português e inglês.
 
-## Executar
-
-### Docker
+## Começar
 
 ```bash
-docker run -d -p 47821:47821 --name linkdrop ghcr.io/thiagosctg/linkdrop-web:latest
+docker run -d --name linkdrop -p 47821:47821 ghcr.io/thiagosctg/linkdrop:v0.1.0
 ```
 
-Abra `http://localhost:47821` na tela e escaneie o QR Code com o celular. Os dois dispositivos precisam acessar o mesmo endereço, então use o IP da máquina na rede local ou um domínio público em vez de `localhost`.
+Abra `http://<IP-do-computador-na-rede>:47821` no computador e escaneie o QR Code com o celular. Os dois dispositivos precisam acessar esse endereço, então `localhost` não funciona para o celular.
 
-### Docker Compose
+**Outras opções:**
 
-```bash
-cp .env.example .env
-docker compose up -d
-```
-
-No PowerShell, use `Copy-Item .env.example .env`.
-
-### Binário
-
-Baixe o binário da sua plataforma na página de [releases](https://github.com/ThiagoSctG/LinkDrop/releases) e execute:
-
-```bash
-PORT=47821 ./linkdrop
-```
+- **Docker Compose**: clone o repositório, copie `.env.example` para `.env` e rode `docker compose up -d`.
+- **Binários** para Linux, macOS e Windows na página de [Releases](https://github.com/ThiagoSctG/LinkDrop/releases/latest), com checksums SHA-256. Eles não são assinados digitalmente.
 
 ## Configuração
 
-Todas as opções são variáveis de ambiente; a tabela completa está no [README em inglês](README.md#configuration). As principais:
+Use variáveis de ambiente; valores inválidos impedem a inicialização com uma mensagem de erro.
 
-- `PORT` (padrão `47821`)
-- `TRUST_PROXY` (padrão `false`): ative apenas atrás de um proxy reverso.
-- `PUBLIC_URL`: origem pública usada nos links de pareamento.
-- `SESSION_TTL` (padrão `30m`) e `PAIRING_TTL` (padrão `2m`)
-- `MAX_ITEMS_PER_SESSION` (padrão `100`)
+| Variável | Padrão | Descrição |
+| --- | --- | --- |
+| `PORT` | `47821` | Porta de escuta (porta do host no Compose fornecido) |
+| `PUBLIC_URL` | _vazio_ | Origem externa dos links de pareamento, ex.: `https://drop.example.com` |
+| `TRUST_PROXY` | `false` | Confia em `X-Forwarded-For` e `X-Forwarded-Proto`; só atrás de um proxy |
+| `SESSION_TTL` | `30m` | Tempo sem atividade até a sessão terminar |
+| `PAIRING_TTL` | `2m` | Validade de um QR Code não escaneado |
+| `MAX_ITEMS_PER_SESSION` | `100` | Máximo de itens por sessão |
+| `RATE_LIMIT_REQUESTS` / `RATE_LIMIT_WINDOW` | `60` / `1m` | Requisições de API por IP a cada janela |
+| `RATE_LIMIT_MAX_KEYS` | `10000` | IPs acompanhados simultaneamente |
+| `LOG_LEVEL` | `info` | `debug`, `info`, `warn` ou `error` (JSON no stderr) |
 
-**Reiniciar o servidor encerra as sessões.** O estado fica em memória de propósito. Ao desligar, os dispositivos conectados são avisados e voltam ao início.
+Para acesso pela internet, coloque o LinkDrop atrás de um proxy HTTPS que encaminhe WebSockets, defina `PUBLIC_URL` e ative `TRUST_PROXY`. Com o [Caddy](https://caddyserver.com/), basta `reverse_proxy localhost:47821`.
 
-Use HTTPS em produção; navegadores só permitem copiar para a área de transferência em origens seguras.
+## Segurança e privacidade
+
+- Sem criptografia de ponta a ponta: o servidor consegue ler o conteúdo. Hospede sua própria instância ou use uma de confiança.
+- O conteúdo fica em memória e nunca é gravado em disco nem em logs. Reiniciar o servidor encerra todas as sessões.
+- Links de pareamento e chaves salvas no navegador dão acesso à sessão. Trate-os como credenciais.
+- Execute uma única instância; as sessões não são compartilhadas entre réplicas.
+
+Relate vulnerabilidades de forma privada, como descrito no [SECURITY.md](SECURITY.md).
 
 ## Desenvolvimento
 
-Requisitos: Go 1.26+ e Node.js 22+.
+Requer Go 1.26.10+ e Node.js 22+.
 
 ```bash
-npm ci
-npm run build          # gera web/dist, que o binário Go embute
-go run ./cmd/linkdrop  # http://localhost:47821
-npm run dev            # Vite com hot reload em http://localhost:5173, com proxy de /api para a porta 47821
+npm ci && npm run build
+go run ./cmd/linkdrop      # http://localhost:47821
+npm run dev                # opcional: hot reload em http://localhost:5173
 ```
 
-`npm run build:all` gera o frontend e o binário `linkdrop` em um único passo.
-
-Veja o [CONTRIBUTING.md](CONTRIBUTING.md) para estrutura e convenções.
+Veja o [CONTRIBUTING.md](CONTRIBUTING.md) (em inglês) para arquitetura, testes e processo de release. Issues e pull requests são bem-vindos em português ou inglês.
 
 ## Licença
 
-[MIT](LICENSE)
+[MIT](LICENSE) · [Changelog](CHANGELOG.md)

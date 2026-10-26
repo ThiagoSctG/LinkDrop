@@ -17,6 +17,14 @@ Thanks for your interest! Issues, fixes and improvements are welcome. Issues and
 | `web/src` | Preact frontend (screen, phone and shared session views) |
 | `web/embed.go` | Embeds the built frontend (`web/dist`) into the binary |
 
+## Architecture
+
+The Go server owns sessions and broadcasts full snapshots over WebSocket. The Preact frontend renders those snapshots and sends explicit actions over HTTP. Building the frontend embeds its static files in the binary; production needs no separate frontend server.
+
+State stays in memory because sharing is temporary: there is no database, migration or recovery after a restart. Run a single instance; replicas would hold different sessions. Each device authenticates using its own random endpoint key, and only the screen can clear the whole list. The server can read contents; HTTPS protects transport, not the server operator.
+
+The tests exercise the public HTTP handler and rendered UI instead of internal implementation details.
+
 ## Domain
 
 The terms code, tests, issues and docs use for LinkDrop's concepts. UI text is translated; these names are not.
@@ -35,7 +43,7 @@ The terms code, tests, issues and docs use for LinkDrop's concepts. UI text is t
 
 ## Local setup
 
-Requirements: Go 1.26+ and Node.js 22+.
+Requirements: Go 1.26.10+ and Node.js 22+.
 
 ```bash
 npm ci
@@ -65,3 +73,13 @@ npm run format:check && npm run typecheck && npm test && npm run build
 - Commit messages follow `type: description`, e.g. `feat:`, `fix:`, `docs:`, `test:`.
 
 By participating you agree to follow the [Code of Conduct](CODE_OF_CONDUCT.md).
+
+## Releases
+
+1. Update `package.json`, both version fields in `package-lock.json`, the default image version in `compose.yaml` and `.env.example`, and versioned commands in both READMEs.
+2. Add a `CHANGELOG.md` section named `## [X.Y.Z]` describing user-visible changes.
+3. Commit and push the changes, then create and push `vX.Y.Z`.
+
+The tag workflow runs the same CI checks, including dependency vulnerability scans, before publishing. It validates version consistency, packages binaries with their license and README, generates SHA-256 checksums, and publishes the multi-architecture container and GitHub release. The release appears only after both artifact jobs succeed. A prerelease tag such as `v0.2.0-rc.1` never updates the container's `latest` tag.
+
+After publishing, verify the container can be pulled without authentication and test an archive downloaded from the release. Release notes come from the changelog.

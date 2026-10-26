@@ -1,6 +1,6 @@
 {
   "name": "linkdrop",
-  "version": "0.2.0",
+  "version": "0.1.0",
   "description": "Temporary link and text sharing between a screen and a phone paired by QR code.",
   "private": true,
   "type": "module",

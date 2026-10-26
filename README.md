@@ -1,102 +1,88 @@
+<div align="center">
+
+<img src="docs/images/logo.svg" width="72" height="72" alt="">
+
 # LinkDrop
 
+**Move links and notes between a computer and a phone. Scan a QR code, share a live list. No sign-in, nothing kept.**
+
 [![CI](https://github.com/ThiagoSctG/LinkDrop/actions/workflows/ci.yml/badge.svg)](https://github.com/ThiagoSctG/LinkDrop/actions/workflows/ci.yml)
+[![Release](https://img.shields.io/github/v/release/ThiagoSctG/LinkDrop?sort=semver)](https://github.com/ThiagoSctG/LinkDrop/releases/latest)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
 **English** · [Português](README.pt-BR.md)
 
-Send links and notes between a screen and a phone without logins, messaging apps or lasting history.
+</div>
 
-The screen shows a temporary QR code. Scanning it joins the phone to the same session, and both devices share a live list. The session ends after 30 minutes without activity, and everything is deleted when it ends.
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/images/hero-dark.png">
+  <img src="docs/images/hero-light.png" alt="LinkDrop on a computer and a phone showing the same shared list of links and notes">
+</picture>
+
+## Why LinkDrop?
+
+Getting a URL from your phone to a meeting-room screen, or a note from a laptop to your phone, usually means emailing yourself or signing in to a messaging app on a computer that isn't yours. LinkDrop skips that: open it on the computer, scan the QR code, and both devices share one list until you end the session.
 
 ## Features
 
-- Pairing by QR code or a copyable link
-- Links and notes with optional titles, updated live on both devices
-- Only `http(s)` links are clickable; anything else is plain text
-- No accounts, no database: all state lives in memory and disappears with the session
-- A single ~10 MB binary, or a ~16 MB container image (amd64 and arm64)
-- Light and dark themes, English and Brazilian Portuguese
-- Rate limiting, strict Content Security Policy, and no content in logs
+- **QR pairing** with a short-lived code. No accounts, no app to install.
+- **Live, two-way list** of links and notes, with optional titles.
+- **Shared-screen friendly**: show a link as a large QR code or a note in full screen.
+- **Ephemeral**: everything lives in memory and is deleted when the session ends or after 30 minutes of inactivity.
+- **Self-hosted and small**: a single ~7 MB binary or a multi-arch container image, light and dark themes, English and Portuguese.
 
-## Run it
-
-### Docker
+## Quick start
 
 ```bash
-docker run -d -p 47821:47821 --name linkdrop ghcr.io/thiagosctg/linkdrop-web:latest
+docker run -d --name linkdrop -p 47821:47821 ghcr.io/thiagosctg/linkdrop:v0.1.0
 ```
 
-Open `http://localhost:47821` on the screen and scan the QR code with your phone. Both devices must reach the same address, so use the machine's LAN IP or a public hostname rather than `localhost`.
+Open `http://<computer-LAN-IP>:47821` on the computer and scan the QR code with your phone. Both devices must reach that address, so `localhost` will not work for the phone.
 
-### Docker Compose
+**Other options:**
 
-```bash
-cp .env.example .env
-docker compose up -d
-```
-
-### Binary
-
-Download a binary for your platform from the [releases](https://github.com/ThiagoSctG/LinkDrop/releases) page and run it:
-
-```bash
-PORT=47821 ./linkdrop
-```
+- **Docker Compose**: clone the repo, copy `.env.example` to `.env` and run `docker compose up -d`.
+- **Binaries** for Linux, macOS and Windows on the [Releases](https://github.com/ThiagoSctG/LinkDrop/releases/latest) page, with SHA-256 checksums. They are not code-signed.
 
 ## Configuration
 
-All settings are environment variables. Invalid values stop the server at startup with a clear message.
+Set environment variables; invalid values stop startup with an error.
 
 | Variable | Default | Description |
 | --- | --- | --- |
-| `PORT` | `47821` | Listen port |
-| `TRUST_PROXY` | `false` | Behind a reverse proxy, read the client IP from the last `X-Forwarded-For` hop and the scheme from `X-Forwarded-Proto`. Leave it off when exposed directly. |
-| `PUBLIC_URL` | _(empty)_ | External origin for pairing links, e.g. `https://drop.example.com`. Empty uses the request's host. |
+| `PORT` | `47821` | Listen port (host port with the supplied Compose file) |
+| `PUBLIC_URL` | _empty_ | External origin for pairing links, e.g. `https://drop.example.com` |
+| `TRUST_PROXY` | `false` | Trust `X-Forwarded-For` and `X-Forwarded-Proto`; only behind a proxy |
 | `SESSION_TTL` | `30m` | Inactivity before a session ends |
 | `PAIRING_TTL` | `2m` | Lifetime of an unscanned QR code |
-| `MAX_ITEMS_PER_SESSION` | `100` | Items a session can hold |
-| `RATE_LIMIT_REQUESTS` | `60` | API requests per client IP per window |
-| `RATE_LIMIT_WINDOW` | `1m` | Rate limit window |
+| `MAX_ITEMS_PER_SESSION` | `100` | Maximum items per session |
+| `RATE_LIMIT_REQUESTS` / `RATE_LIMIT_WINDOW` | `60` / `1m` | API requests per client IP per window |
 | `RATE_LIMIT_MAX_KEYS` | `10000` | Client IPs tracked at once |
-| `LOG_LEVEL` | `info` | `debug`, `info`, `warn` or `error` (JSON logs on stderr) |
+| `LOG_LEVEL` | `info` | `debug`, `info`, `warn` or `error` (JSON on stderr) |
 
-The health endpoint is `GET /api/health`. Container images run `linkdrop healthcheck` for Docker's `HEALTHCHECK`.
+For internet access, put LinkDrop behind an HTTPS proxy that forwards WebSockets, set `PUBLIC_URL` and enable `TRUST_PROXY`. With [Caddy](https://caddyserver.com/), `reverse_proxy localhost:47821` is all it takes.
 
-**Restarts end sessions.** State is kept in memory on purpose. On shutdown, connected devices are told their session ended and return to the start screen.
+## Security and privacy
 
-Use HTTPS in production. Browsers only allow copying to the clipboard on secure origins.
+- Not end-to-end encrypted: the server can read shared contents. Host your own instance or use one you trust.
+- Contents stay in memory and are never written to disk or logs. Restarting the server ends all sessions.
+- Pairing links and saved device keys grant access to a session. Treat them as credentials.
+- Run a single instance; sessions are not shared between replicas.
+
+Report vulnerabilities privately as described in [SECURITY.md](SECURITY.md).
 
 ## Development
 
-Requirements: Go 1.26+ and Node.js 22+.
+Requires Go 1.26.10+ and Node.js 22+.
 
 ```bash
-npm ci
-npm run build          # builds the frontend into web/dist, which the Go binary embeds
-go run ./cmd/linkdrop  # http://localhost:47821
+npm ci && npm run build
+go run ./cmd/linkdrop      # http://localhost:47821
+npm run dev                # optional: hot reload on http://localhost:5173
 ```
 
-`npm run build:all` builds the frontend and then the `linkdrop` binary in one step.
-
-For frontend work with hot reload, keep the Go server running and start Vite in another terminal. It proxies `/api` to port 47821:
-
-```bash
-npm run dev            # http://localhost:5173
-```
-
-Checks:
-
-```bash
-go vet ./... && go test ./...
-npm run typecheck && npm test && npm run format:check
-```
-
-See [CONTRIBUTING.md](CONTRIBUTING.md) for the project layout and conventions.
-
-## Privacy
-
-LinkDrop does not need an account and never writes link or note contents, tokens or keys to its logs. Session data exists only in the server's memory and is deleted when the session ends or expires.
+See [CONTRIBUTING.md](CONTRIBUTING.md) for the architecture, tests and release process. Issues and pull requests are welcome in English or Portuguese.
 
 ## License
 
-[MIT](LICENSE)
+[MIT](LICENSE) · [Changelog](CHANGELOG.md)

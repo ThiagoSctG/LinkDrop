@@ -5,44 +5,133 @@ on:
     tags:
       - "v*.*.*"
 
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
 permissions:
-  contents: write
-  packages: write
+  contents: read
 
 env:
-  IMAGE_NAME: ghcr.io/thiagosctg/linkdrop-web
+  IMAGE_NAME: ghcr.io/thiagosctg/linkdrop
 
 jobs:
-  image:
-    name: Multi-arch image
+  checks:
+    uses: ./.github/workflows/ci.yml
+
+  metadata:
+    name: Validate release version
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+      - name: Validate version and extract release notes
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          python3 - <<'PY'
+          import json, os, re
+          from pathlib import Path
+          tag = os.environ["RELEASE_TAG"]
+          if not re.fullmatch(r"v[0-9]+\.[0-9]+\.[0-9]+(?:-[0-9A-Za-z.-]+)?", tag):
+              raise SystemExit("Expected a version tag such as v0.1.0")
+          version = tag[1:]
+          package = json.loads(Path("package.json").read_text())
+          lock = json.loads(Path("package-lock.json").read_text())
+          if any(v != version for v in [package["version"], lock["version"], lock["packages"][""]["version"]]):
+              raise SystemExit("Tag, package.json and package-lock.json versions must agree")
+          changelog = Path("CHANGELOG.md").read_text()
+          heading = f"## [{version}]"
+          sections = changelog.split(heading, 1)
+          if len(sections) != 2:
+              raise SystemExit(f"Missing changelog section {heading}")
+          notes = sections[1].split("\n", 1)[1].split("\n## ", 1)[0].strip()
+          if not notes:
+              raise SystemExit("Release notes must not be empty")
+          notes += f"\n\n### Installation\n\n- Container: `docker run -d -p 47821:47821 --name linkdrop ghcr.io/thiagosctg/linkdrop:{tag}`\n- Binaries: download and extract the archive for your OS and architecture below.\n- Open `http://localhost:47821`; use the computer's LAN IP when pairing a phone.\n- Verify downloads against `checksums.txt`. See the README for platform instructions.\n"
+          Path("release-notes.md").write_text(notes)
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: release-notes
+          path: release-notes.md
+          if-no-files-found: error
 
-      - name: Setup Buildx
-        uses: docker/setup-buildx-action@v3
+  binaries:
+    name: Build binaries
+    needs: [checks, metadata]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - name: Build frontend
+        run: npm ci && npm run build
+      - name: Build and package binaries
+        run: |
+          mkdir -p release
+          for target in linux/amd64 linux/arm64 darwin/amd64 darwin/arm64 windows/amd64; do
+            os=${target%/*}; arch=${target#*/}
+            ext=""; [ "$os" = windows ] && ext=".exe"
+            dir="build/${os}_${arch}"
+            mkdir -p "$dir"
+            CGO_ENABLED=0 GOOS=$os GOARCH=$arch go build -trimpath \
+              -ldflags="-s -w -X main.version=${GITHUB_REF_NAME}" \
+              -o "$dir/linkdrop$ext" ./cmd/linkdrop
+            cp LICENSE README.md "$dir/"
+            if [ "$os" = windows ]; then
+              (cd "$dir" && zip -q "../../release/linkdrop_${os}_${arch}.zip" linkdrop.exe LICENSE README.md)
+            else
+              tar -czf "release/linkdrop_${os}_${arch}.tar.gz" -C "$dir" linkdrop LICENSE README.md
+            fi
+          done
+          (cd release && sha256sum * > checksums.txt)
+      - name: Smoke test Linux binary
+        run: |
+          build/linux_amd64/linkdrop &
+          pid=$!
+          trap 'kill "$pid"' EXIT
+          for _ in $(seq 1 20); do
+            if build/linux_amd64/linkdrop healthcheck; then
+              curl -fsS http://localhost:47821/ | grep -q '<html'
+              exit 0
+            fi
+            sleep 1
+          done
+          exit 1
+      - uses: actions/upload-artifact@v4
+        with:
+          name: release-binaries
+          path: release/*
+          if-no-files-found: error
 
-      - name: Login to GHCR
-        uses: docker/login-action@v3
+  image:
+    name: Publish multi-arch image
+    needs: [checks, metadata]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Image tags
+      - uses: docker/metadata-action@v5
         id: meta
-        uses: docker/metadata-action@v5
         with:
           images: ${{ env.IMAGE_NAME }}
-          # vX.Y.Z and X.Y; pre-releases (v1.0.0-rc.1) never move X.Y or latest.
           tags: |
             type=semver,pattern=v{{version}}
-            type=semver,pattern={{major}}.{{minor}}
             type=raw,value=latest,enable=${{ !contains(github.ref_name, '-') }}
-
-      - name: Build and push
-        uses: docker/build-push-action@v6
+      - uses: docker/build-push-action@v6
         with:
           context: .
           platforms: linux/amd64,linux/arm64
@@ -51,40 +140,30 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           build-args: VERSION=${{ github.ref_name }}
 
-  binaries:
-    name: Binaries
+  publish:
+    name: Publish GitHub release
+    needs: [metadata, binaries, image]
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
         with:
-          node-version: 22
-          cache: npm
-
-      - name: Setup Go
-        uses: actions/setup-go@v5
+          name: release-binaries
+          path: release
+      - uses: actions/download-artifact@v4
         with:
-          go-version-file: go.mod
-
-      - name: Build frontend
-        run: npm ci && npm run build
-
-      - name: Build binaries
-        run: |
-          mkdir -p release
-          for target in linux/amd64 linux/arm64 darwin/amd64 darwin/arm64 windows/amd64; do
-            os=${target%/*}; arch=${target#*/}
-            ext=""; [ "$os" = windows ] && ext=".exe"
-            CGO_ENABLED=0 GOOS=$os GOARCH=$arch go build -trimpath \
-              -ldflags="-s -w -X main.version=${GITHUB_REF_NAME}" \
-              -o "release/linkdrop_${GITHUB_REF_NAME}_${os}_${arch}${ext}" ./cmd/linkdrop
-          done
-          (cd release && sha256sum * > checksums.txt)
-
+          name: release-notes
+          path: .
+      - name: Verify checksums
+        run: cd release && sha256sum -c checksums.txt
       - name: Publish release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: gh release create "$GITHUB_REF_NAME" release/* --generate-notes --verify-tag
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          args=()
+          [[ "$RELEASE_TAG" == *-* ]] && args+=(--prerelease)
+          gh release create "$RELEASE_TAG" release/* --title "LinkDrop $RELEASE_TAG" \
+            --notes-file release-notes.md --verify-tag "${args[@]}"

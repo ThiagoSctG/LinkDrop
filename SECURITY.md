@@ -1,18 +1,22 @@
-# Política de Segurança
+# Security Policy
 
-## Versões suportadas
+## Supported versions
 
-O LinkDrop ainda está em desenvolvimento inicial. Correções de segurança são aplicadas apenas à versão mais recente da branch padrão.
+LinkDrop is in early development. Security fixes are released only for the latest version.
 
-## Relatando uma vulnerabilidade
+## Reporting a vulnerability
 
-Não abra uma issue pública. Use o recurso **Report a vulnerability** na aba **Security** do repositório para enviar um relato privado. Se esse recurso não estiver disponível, entre em contato com o mantenedor pelos canais indicados em seu perfil do GitHub.
+Please do not open a public issue. Report it privately through [**Report a vulnerability**](https://github.com/ThiagoSctG/LinkDrop/security/advisories/new) in the repository's **Security** tab. Reports in English or Portuguese are welcome.
 
-Inclua, quando possível:
+When possible, include:
 
-- descrição e impacto esperado;
-- passos mínimos para reproduzir;
-- versão, commit ou ambiente afetado;
-- uma sugestão de correção, se houver.
+- a description of the issue and its expected impact;
+- minimal steps to reproduce it;
+- the affected version, commit or environment;
+- a suggested fix, if you have one.
 
-Evite acessar dados de terceiros, interromper serviços ou divulgar a falha antes de uma correção coordenada. O recebimento será confirmado assim que possível, seguido de uma avaliação de impacto e próximos passos.
+Do not access other people's data, disrupt services or disclose the issue before a fix is coordinated. You will receive an acknowledgement as soon as possible, followed by an impact assessment and next steps.
+
+## Scope
+
+LinkDrop is designed to be self-hosted, and the server operator can read shared contents. Reports about the operator's ability to read data on their own instance are out of scope; see [Hosting and privacy](README.md#hosting-and-privacy).

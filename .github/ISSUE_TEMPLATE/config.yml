@@ -1,5 +1,5 @@
 blank_issues_enabled: false
 contact_links:
-  - name: Relatar uma vulnerabilidade
+  - name: Report a security vulnerability
     url: https://github.com/ThiagoSctG/LinkDrop/security/advisories/new
-    about: Envie problemas de segurança de forma privada.
+    about: Report security issues privately.

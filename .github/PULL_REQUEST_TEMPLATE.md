@@ -1,13 +1,13 @@
-## O que mudou?
+## What changed?
 
-<!-- Explique o problema e a solução de forma breve. -->
+<!-- Briefly describe the problem and the solution. Link the related issue, if any. -->
 
-## Como validar?
+## How was it verified?
 
-<!-- Liste os comandos ou passos usados para verificar a mudança. -->
+<!-- List the commands or steps used to check the change. -->
 
 ## Checklist
 
-- [ ] Adicionei ou atualizei testes quando necessário.
-- [ ] Atualizei a documentação quando necessário.
-- [ ] Executei `gofmt -l . && go vet ./... && go test ./...` e `npm run format:check && npm run typecheck && npm test && npm run build`.
+- [ ] Added or updated tests where needed.
+- [ ] Updated the documentation where needed.
+- [ ] Ran `gofmt -l . && go vet ./... && go test ./...` and `npm run format:check && npm run typecheck && npm test && npm run build`.
