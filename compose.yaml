@@ -1,0 +1,22 @@
+services:
+  web:
+    build: .
+    image: ghcr.io/thiagosctg/linkdrop-web:${WEB_TAG:-latest}
+    # Empty values fall back to the built-in defaults (see .env.example).
+    environment:
+      PORT: 3000
+      TRUST_PROXY: ${TRUST_PROXY:-false}
+      PUBLIC_URL: ${PUBLIC_URL:-}
+      SESSION_TTL: ${SESSION_TTL:-}
+      PAIRING_TTL: ${PAIRING_TTL:-}
+      RATE_LIMIT_REQUESTS: ${RATE_LIMIT_REQUESTS:-}
+      RATE_LIMIT_WINDOW: ${RATE_LIMIT_WINDOW:-}
+      RATE_LIMIT_MAX_KEYS: ${RATE_LIMIT_MAX_KEYS:-}
+      MAX_ITEMS_PER_SESSION: ${MAX_ITEMS_PER_SESSION:-}
+      LOG_LEVEL: ${LOG_LEVEL:-}
+    ports:
+      - "${PORT:-3000}:3000"
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    restart: unless-stopped

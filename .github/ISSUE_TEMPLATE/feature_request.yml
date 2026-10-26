@@ -1,0 +1,25 @@
+name: Sugerir uma melhoria
+description: Proponha uma melhoria para o produto ou para o projeto.
+title: "[Melhoria]: "
+labels:
+  - enhancement
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problema
+      description: Que necessidade ou dificuldade esta proposta resolve?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposta
+      description: Como você imagina que isso deveria funcionar?
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternativas consideradas
+      description: Existem outras soluções ou contornos possíveis?

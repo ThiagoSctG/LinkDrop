@@ -1,0 +1,36 @@
+# Dependencies and package-manager output
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.pnp.*
+
+# Build artifacts (web/dist keeps a placeholder so go:embed compiles before the first build)
+web/dist/*
+!web/dist/.gitkeep
+/linkdrop
+/linkdrop.exe
+coverage/
+*.tsbuildinfo
+
+# Local environment and secrets
+.env
+.env.*
+!.env.example
+
+# Local containers and deployment tooling
+.docker/
+.vercel/
+.turbo/
+
+# Agent/design tooling generated locally
+.agents/
+.impeccable/
+.scratch/
+
+# Editors and operating systems
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db

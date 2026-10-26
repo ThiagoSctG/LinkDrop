@@ -1,0 +1,263 @@
+const ptBR = {
+  "brand.home": "LinkDrop — voltar ao início",
+  "theme.useDark": "Usar tema escuro",
+  "theme.useLight": "Usar tema claro",
+  "theme.dark": "Escuro",
+  "theme.light": "Claro",
+
+  "pairing.status": "Pronto para conectar",
+  "pairing.connected": "Celular conectado!",
+  "pairing.title": "Compartilhe",
+  "pairing.titleMark": "sem intermediários.",
+  "pairing.lead":
+    "Envie links e textos entre esta tela e seu celular. Sem cadastro, sem histórico e sem abrir outro aplicativo.",
+  "pairing.step1": "Escaneie o QR Code",
+  "pairing.step2": "Cole um link ou escreva uma nota",
+  "pairing.step3": "Use o conteúdo nos dois dispositivos",
+  "pairing.connectPhone": "Conectar celular",
+  "pairing.temporary": "Código temporário",
+  "pairing.qrAlt": "QR Code para conectar o celular ao LinkDrop",
+  "pairing.generating": "Gerando QR Code…",
+  "pairing.unavailable": "Não foi possível criar a conexão agora.",
+  "pairing.retry": "Tentar novamente",
+  "pairing.copyLink": "Copiar link de acesso",
+  "pairing.linkCopied": "Link copiado",
+  "pairing.copyFailed": "Não foi possível copiar",
+  "pairing.renews": "O código é renovado automaticamente.",
+  "pairing.renewsIn": "Renova em {time}",
+  "pairing.expiresIn": "Expira em {time}",
+  "pairing.footerTemporary": "Conexão temporária",
+  "pairing.footerNoAccount": "Sem conta",
+  "pairing.footerRemoved": "Dados removidos ao encerrar",
+
+  "phone.connecting": "Conectando ao LinkDrop…",
+  "phone.connectingHelp": "Isso leva apenas alguns segundos.",
+  "phone.failed": "Não foi possível conectar.",
+  "phone.endedHelp": "Os itens foram apagados dos dois dispositivos.",
+  "phone.rescan": "Este celular não está conectado a nenhuma sessão.",
+  "phone.recovery": "Volte para a tela que exibe o QR Code e faça uma nova leitura.",
+
+  "ended.ended": "Sessão encerrada.",
+  "ended.expired": "Sessão encerrada por inatividade.",
+  "ended.server_restart": "O servidor foi reiniciado e a sessão foi encerrada.",
+  "ended.gone": "A sessão não está mais disponível.",
+  "ended.replaced": "Outro celular entrou nesta sessão.",
+
+  "rejoin.button": "Reconectar celular",
+  "rejoin.title": "Reconectar celular",
+  "rejoin.warning": "O celular conectado agora será desconectado.",
+  "rejoin.connected": "Celular conectado!",
+  "rejoin.generateNew": "Gerar novo código",
+  "rejoin.close": "Fechar reconexão",
+
+  "session.screenConnected": "Tela conectada",
+  "session.phoneConnected": "Celular conectado",
+  "session.end": "Encerrar sessão",
+  "session.confirmEnd": "Encerrar esta sessão nos dois dispositivos?",
+  "session.confirmEndHelp": "Todos os itens serão apagados.",
+  "session.unstable": "A conexão está instável. Tentaremos novamente automaticamente.",
+  "session.minutesLeft": "{minutes} min restantes",
+  "session.lessThanMinute": "Menos de 1 min restante",
+  "session.timerHelp":
+    "A sessão termina quando o tempo acaba sem atividade. Toque para renovar ou envie, copie e abra itens.",
+  "session.keepAlive": "Manter sessão ativa",
+  "session.renew": "Renovar",
+
+  "composer.title": "Novo conteúdo",
+  "composer.paste": "Colar",
+  "composer.addTitle": "Adicionar título",
+  "composer.titleShort": "Título",
+  "composer.removeTitle": "Remover título",
+  "composer.titleLabel": "Título (opcional)",
+  "composer.titlePlaceholder": "Título (opcional)",
+  "composer.contentLabel": "Link ou texto",
+  "composer.contentPlaceholder": "Cole um link ou escreva uma nota",
+  "composer.send": "Enviar",
+  "composer.kindLink": "Link · {host}",
+  "composer.kindNote": "Nota",
+
+  "list.title": "Conteúdo compartilhado",
+  "list.clear": "Limpar lista",
+  "list.confirmClear": "Remover todos os itens da lista?",
+  "list.confirmClearHelp": "Esta ação não pode ser desfeita.",
+  "list.emptyTitle": "A lista está vazia.",
+  "list.emptyHelp": "Envie o primeiro link ou texto pelo formulário.",
+  "item.link": "Link",
+  "item.note": "Nota",
+  "item.open": "Abrir link",
+  "item.copy": "Copiar",
+  "item.copied": "Copiado",
+  "item.copyFailed": "Falha ao copiar",
+  "item.copiedStatus": "Conteúdo copiado.",
+  "item.copyFailedStatus": "Não foi possível copiar o conteúdo.",
+  "item.remove": "Remover",
+  "item.removed": "Item removido",
+  "item.undo": "Desfazer",
+
+  "spotlight.showQr": "Mostrar QR",
+  "spotlight.enlarge": "Ampliar",
+  "spotlight.close": "Fechar destaque",
+  "spotlight.qrTooLong": "Este link é longo demais para virar QR.",
+  "spotlight.qrAlt": "QR code do link {url}",
+
+  "time.now": "agora",
+  "toast.copied": "Copiado para a área de transferência",
+  "toast.renewed": "Sessão renovada",
+  "dialog.cancel": "Cancelar",
+  "notice.dismiss": "Fechar aviso",
+
+  "error.qr_used": "Este QR Code já foi usado.",
+  "error.qr_expired": "Este QR Code expirou ou não está disponível.",
+  "error.rate_limited": "Muitas solicitações. Aguarde um minuto e tente novamente.",
+  "error.content_empty": "Escreva um link ou texto antes de enviar.",
+  "error.content_too_long": "O conteúdo deve ter até 10.000 caracteres.",
+  "error.title_too_long": "O título deve ter até 200 caracteres.",
+  "error.session_full": "A lista atingiu o limite de itens. Remova itens ou limpe a lista.",
+  "error.screen_only": "Somente a tela pode limpar a lista.",
+  "error.paste": "Não foi possível ler a área de transferência. Cole manualmente no campo.",
+  "error.network": "Falha de conexão. Verifique sua internet e tente novamente.",
+  "error.generic": "Não foi possível concluir a ação.",
+} as const;
+
+export type MessageKey = keyof typeof ptBR;
+
+const en: Record<MessageKey, string> = {
+  "brand.home": "LinkDrop — back to start",
+  "theme.useDark": "Use dark theme",
+  "theme.useLight": "Use light theme",
+  "theme.dark": "Dark",
+  "theme.light": "Light",
+
+  "pairing.status": "Ready to connect",
+  "pairing.connected": "Phone connected!",
+  "pairing.title": "Share",
+  "pairing.titleMark": "without middlemen.",
+  "pairing.lead":
+    "Send links and text between this screen and your phone. No sign-up, no history, no other app to open.",
+  "pairing.step1": "Scan the QR code",
+  "pairing.step2": "Paste a link or write a note",
+  "pairing.step3": "Use it on both devices",
+  "pairing.connectPhone": "Connect a phone",
+  "pairing.temporary": "Temporary code",
+  "pairing.qrAlt": "QR code to connect your phone to LinkDrop",
+  "pairing.generating": "Generating QR code…",
+  "pairing.unavailable": "Could not create a connection right now.",
+  "pairing.retry": "Try again",
+  "pairing.copyLink": "Copy access link",
+  "pairing.linkCopied": "Link copied",
+  "pairing.copyFailed": "Could not copy",
+  "pairing.renews": "The code renews automatically.",
+  "pairing.renewsIn": "Renews in {time}",
+  "pairing.expiresIn": "Expires in {time}",
+  "pairing.footerTemporary": "Temporary connection",
+  "pairing.footerNoAccount": "No account",
+  "pairing.footerRemoved": "Data deleted when you finish",
+
+  "phone.connecting": "Connecting to LinkDrop…",
+  "phone.connectingHelp": "This only takes a few seconds.",
+  "phone.failed": "Could not connect.",
+  "phone.endedHelp": "The items were deleted from both devices.",
+  "phone.rescan": "This phone is not connected to a session.",
+  "phone.recovery": "Go back to the screen showing the QR code and scan it again.",
+
+  "ended.ended": "Session ended.",
+  "ended.expired": "Session ended after inactivity.",
+  "ended.server_restart": "The server restarted and the session ended.",
+  "ended.gone": "This session is no longer available.",
+  "ended.replaced": "Another phone joined this session.",
+
+  "rejoin.button": "Reconnect phone",
+  "rejoin.title": "Reconnect phone",
+  "rejoin.warning": "The currently connected phone will be disconnected.",
+  "rejoin.connected": "Phone connected!",
+  "rejoin.generateNew": "Generate new code",
+  "rejoin.close": "Close reconnection",
+
+  "session.screenConnected": "Screen connected",
+  "session.phoneConnected": "Phone connected",
+  "session.end": "End session",
+  "session.confirmEnd": "End this session on both devices?",
+  "session.confirmEndHelp": "Every item will be deleted.",
+  "session.unstable": "The connection is unstable. We will keep retrying automatically.",
+  "session.minutesLeft": "{minutes} min left",
+  "session.lessThanMinute": "Less than 1 min left",
+  "session.timerHelp":
+    "The session ends when time runs out without activity. Tap to renew or send, copy and open items.",
+  "session.keepAlive": "Keep session active",
+  "session.renew": "Renew",
+
+  "composer.title": "New item",
+  "composer.paste": "Paste",
+  "composer.addTitle": "Add title",
+  "composer.titleShort": "Title",
+  "composer.removeTitle": "Remove title",
+  "composer.titleLabel": "Title (optional)",
+  "composer.titlePlaceholder": "Title (optional)",
+  "composer.contentLabel": "Link or text",
+  "composer.contentPlaceholder": "Paste a link or write a note",
+  "composer.send": "Send",
+  "composer.kindLink": "Link · {host}",
+  "composer.kindNote": "Note",
+
+  "list.title": "Shared items",
+  "list.clear": "Clear list",
+  "list.confirmClear": "Remove every item from the list?",
+  "list.confirmClearHelp": "This cannot be undone.",
+  "list.emptyTitle": "The list is empty.",
+  "list.emptyHelp": "Send the first link or text using the form.",
+  "item.link": "Link",
+  "item.note": "Note",
+  "item.open": "Open link",
+  "item.copy": "Copy",
+  "item.copied": "Copied",
+  "item.copyFailed": "Copy failed",
+  "item.copiedStatus": "Content copied.",
+  "item.copyFailedStatus": "Could not copy the content.",
+  "item.remove": "Remove",
+  "item.removed": "Item removed",
+  "item.undo": "Undo",
+
+  "spotlight.showQr": "Show QR code",
+  "spotlight.enlarge": "Enlarge",
+  "spotlight.close": "Close spotlight",
+  "spotlight.qrTooLong": "This link is too long to generate a QR code.",
+  "spotlight.qrAlt": "QR code for {url}",
+
+  "time.now": "just now",
+  "toast.copied": "Copied to the clipboard",
+  "toast.renewed": "Session renewed",
+  "dialog.cancel": "Cancel",
+  "notice.dismiss": "Dismiss notice",
+
+  "error.qr_used": "This QR code was already used.",
+  "error.qr_expired": "This QR code expired or is no longer available.",
+  "error.rate_limited": "Too many requests. Wait a minute and try again.",
+  "error.content_empty": "Write a link or some text before sending.",
+  "error.content_too_long": "Content must be at most 10,000 characters.",
+  "error.title_too_long": "The title must be at most 200 characters.",
+  "error.session_full": "The list reached its item limit. Remove items or clear the list.",
+  "error.screen_only": "Only the screen can clear the list.",
+  "error.paste": "Could not read the clipboard. Paste into the field manually.",
+  "error.network": "Connection failed. Check your internet and try again.",
+  "error.generic": "Could not complete the action.",
+};
+
+export type Locale = "pt-BR" | "en";
+
+export function detectLocale(language = navigator.language): Locale {
+  return language.toLowerCase().startsWith("pt") ? "pt-BR" : "en";
+}
+
+const dictionaries: Record<Locale, Record<MessageKey, string>> = { "pt-BR": ptBR, en };
+
+/** Looks up a message, filling `{name}` placeholders from `vars`. */
+export function t(key: MessageKey, vars?: Record<string, string | number>): string {
+  const text = dictionaries[detectLocale()][key];
+  return vars ? text.replace(/\{(\w+)\}/g, (match, name) => String(vars[name] ?? match)) : text;
+}
+
+/** Translates an API error code, falling back to a generic message for unknown codes. */
+export function errorMessage(code: string | undefined): string {
+  const key = `error.${code}`;
+  return key in ptBR ? t(key as MessageKey) : t("error.generic");
+}

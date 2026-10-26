@@ -1,0 +1,16 @@
+.git
+.github
+.gitignore
+node_modules
+web/dist
+.env
+.env.*
+!.env.example
+.scratch
+.agents
+.impeccable
+docs
+*.md
+**/*_test.go
+web/src/**/*.test.tsx
+web/src/test
