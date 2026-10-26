@@ -40,7 +40,7 @@ func (l *rateLimiter) allow(key string) bool {
 			l.pruneLocked(now)
 		}
 		if len(l.windows) >= l.limit.MaxKeys {
-			return false
+			l.evictOldestLocked()
 		}
 		l.windows[key] = &window{count: 1, reset: now.Add(l.limit.Window)}
 		return true
@@ -58,12 +58,43 @@ func (l *rateLimiter) prune() {
 	l.pruneLocked(l.now())
 }
 
+// evictOldestLocked forgets the identity whose window started first, so a full table
+// never locks out new clients.
+func (l *rateLimiter) evictOldestLocked() {
+	var oldest string
+	var reset time.Time
+	for key, w := range l.windows {
+		if oldest == "" || w.reset.Before(reset) {
+			oldest, reset = key, w.reset
+		}
+	}
+	delete(l.windows, oldest)
+}
+
 func (l *rateLimiter) pruneLocked(now time.Time) {
 	for key, w := range l.windows {
 		if !now.Before(w.reset) {
 			delete(l.windows, key)
 		}
 	}
+}
+
+// rateKey groups IPv6 clients by /64, the block one subscriber usually controls, so
+// rotating addresses inside it neither multiplies the limit nor fills the table.
+func rateKey(ip string) string {
+	addr, err := netip.ParseAddr(ip)
+	if err != nil {
+		return ip
+	}
+	addr = addr.Unmap()
+	if addr.Is4() {
+		return addr.String()
+	}
+	prefix, err := addr.WithZone("").Prefix(64)
+	if err != nil {
+		return ip
+	}
+	return prefix.String()
 }
 
 // clientIP returns the socket peer, or with trustProxy the address the proxy itself

@@ -46,17 +46,33 @@ func TestTrustedProxyUsesTheAddressItObserved(t *testing.T) {
 	expectStatus(t, h.do("GET", "/api/health", map[string]string{"x-forwarded-for": "192.0.2.11"}, nil), http.StatusOK)
 }
 
-func TestRateLimitBoundsIdentitiesAndRecovers(t *testing.T) {
+func TestRateLimitBoundsIdentitiesByEvictingTheOldest(t *testing.T) {
 	h := newHarness(t, func(c *linkdrop.Config) {
 		c.TrustProxy = true
+		c.RateLimit.Requests = 1
 		c.RateLimit.MaxKeys = 2
 	})
 	ip := func(last string) map[string]string { return map[string]string{"x-forwarded-for": last} }
 	expectStatus(t, h.do("GET", "/api/health", ip("192.0.2.1"), nil), http.StatusOK)
+	h.clock.Advance(time.Second)
 	expectStatus(t, h.do("GET", "/api/health", ip("192.0.2.2"), nil), http.StatusOK)
-	expectStatus(t, h.do("GET", "/api/health", ip("192.0.2.3"), nil), http.StatusTooManyRequests)
-	h.clock.Advance(time.Minute + time.Second)
+	// A full table must not lock out new clients.
 	expectStatus(t, h.do("GET", "/api/health", ip("192.0.2.3"), nil), http.StatusOK)
+	expectStatus(t, h.do("GET", "/api/health", ip("192.0.2.2"), nil), http.StatusTooManyRequests)
+	expectStatus(t, h.do("GET", "/api/health", ip("192.0.2.3"), nil), http.StatusTooManyRequests)
+}
+
+func TestRateLimitGroupsIPv6ByNetwork(t *testing.T) {
+	h := newHarness(t, func(c *linkdrop.Config) { c.TrustProxy = true })
+	var responses []response
+	for i := range 61 {
+		responses = append(responses, h.do("GET", "/api/health", map[string]string{"x-forwarded-for": fmt.Sprintf("2001:db8:0:1::%x", i+1)}, nil))
+	}
+	if counts := countStatuses(responses); counts[200] != 60 || counts[429] != 1 {
+		t.Fatalf("statuses = %v", counts)
+	}
+	expectStatus(t, h.do("GET", "/api/health", map[string]string{"x-forwarded-for": "2001:db8:0:2::1"}, nil), http.StatusOK)
+	expectStatus(t, h.do("GET", "/api/health", map[string]string{"x-forwarded-for": "192.0.2.1"}, nil), http.StatusOK)
 }
 
 func TestRequestBodyIsBounded(t *testing.T) {

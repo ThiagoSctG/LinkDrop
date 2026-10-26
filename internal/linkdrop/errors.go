@@ -23,10 +23,11 @@ var (
 	errContentEmpty   = &apiError{http.StatusUnprocessableEntity, "content_empty", "Escreva um link ou texto antes de enviar."}
 	errContentLong    = &apiError{http.StatusUnprocessableEntity, "content_too_long", "O conteúdo deve ter até 10.000 caracteres."}
 	errTitleLong      = &apiError{http.StatusUnprocessableEntity, "title_too_long", "O título deve ter até 200 caracteres."}
-	errSessionFull    = &apiError{http.StatusUnprocessableEntity, "session_full", "A lista atingiu o limite de itens. Remova itens ou limpe a lista."}
+	errSessionFull    = &apiError{http.StatusUnprocessableEntity, "session_full", "A lista está cheia. Remova itens ou limpe a lista."}
 	errScreenOnly     = &apiError{http.StatusForbidden, "screen_only", "Somente a tela pode fazer isso."}
 	errBodyTooLarge   = &apiError{http.StatusRequestEntityTooLarge, "body_too_large", "A solicitação excede o limite permitido."}
 	errUnauthorized   = &apiError{http.StatusUnauthorized, "unauthorized", "Sessão indisponível."}
+	errServerBusy     = &apiError{http.StatusServiceUnavailable, "server_busy", "O servidor atingiu o limite de sessões. Tente novamente mais tarde."}
 	errShuttingDown   = &apiError{http.StatusServiceUnavailable, "shutting_down", "O servidor está reiniciando. Tente novamente em instantes."}
 	errInternal       = &apiError{http.StatusInternalServerError, "internal", "Erro interno do servidor."}
 )

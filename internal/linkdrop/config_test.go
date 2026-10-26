@@ -23,7 +23,7 @@ func TestConfigFromEnvDefaults(t *testing.T) {
 	if addr != ":47821" || cfg.TrustProxy || cfg.PublicURL != "" {
 		t.Fatalf("addr %q cfg %+v", addr, cfg)
 	}
-	if cfg.SessionTTL != 30*time.Minute || cfg.PairingTTL != 2*time.Minute || cfg.MaxItemsPerSession != 100 {
+	if cfg.SessionTTL != 30*time.Minute || cfg.PairingTTL != 2*time.Minute || cfg.MaxItemsPerSession != 100 || cfg.MaxSessions != 1000 {
 		t.Fatalf("cfg = %+v", cfg)
 	}
 	if cfg.RateLimit != (linkdrop.RateLimit{Requests: 60, Window: time.Minute, MaxKeys: 10_000}) {
@@ -42,13 +42,14 @@ func TestConfigFromEnvOverrides(t *testing.T) {
 		"RATE_LIMIT_WINDOW":     "30s",
 		"RATE_LIMIT_MAX_KEYS":   "50",
 		"MAX_ITEMS_PER_SESSION": "20",
+		"MAX_SESSIONS":          "5",
 	}))
 	if err != nil {
 		t.Fatal(err)
 	}
 	want := linkdrop.RateLimit{Requests: 120, Window: 30 * time.Second, MaxKeys: 50}
 	if addr != ":8080" || !cfg.TrustProxy || cfg.PublicURL != "https://drop.example.com" || cfg.SessionTTL != 45*time.Minute ||
-		cfg.PairingTTL != 90*time.Second || cfg.RateLimit != want || cfg.MaxItemsPerSession != 20 {
+		cfg.PairingTTL != 90*time.Second || cfg.RateLimit != want || cfg.MaxItemsPerSession != 20 || cfg.MaxSessions != 5 {
 		t.Fatalf("addr %q cfg %+v", addr, cfg)
 	}
 }
@@ -62,6 +63,7 @@ func TestConfigFromEnvRejectsInvalidValues(t *testing.T) {
 		"PAIRING_TTL":           "-1m",
 		"RATE_LIMIT_REQUESTS":   "0",
 		"MAX_ITEMS_PER_SESSION": "lots",
+		"MAX_SESSIONS":          "0",
 		"LOG_LEVEL":             "loud",
 	} {
 		_, _, err := linkdrop.ConfigFromEnv(env(map[string]string{key: value}))

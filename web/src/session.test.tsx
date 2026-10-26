@@ -101,9 +101,7 @@ describe("shared session", () => {
     fireEvent.input(await screen.findByLabelText("Link ou texto"), { target: { value: "one more" } });
     fireEvent.submit(screen.getByRole("button", { name: "Enviar" }).closest("form")!);
 
-    expect((await screen.findByRole("alert")).textContent).toBe(
-      "A lista atingiu o limite de itens. Remova itens ou limpe a lista.",
-    );
+    expect((await screen.findByRole("alert")).textContent).toBe("A lista está cheia. Remova itens ou limpe a lista.");
   });
 
   it("empties the list as soon as clearing is confirmed, and restores it if the server refuses", async () => {

@@ -56,9 +56,10 @@ Set environment variables; invalid values stop startup with an error.
 | `TRUST_PROXY` | `false` | Trust `X-Forwarded-For` and `X-Forwarded-Proto`; only behind a proxy |
 | `SESSION_TTL` | `30m` | Inactivity before a session ends |
 | `PAIRING_TTL` | `2m` | Lifetime of an unscanned QR code |
-| `MAX_ITEMS_PER_SESSION` | `100` | Maximum items per session |
-| `RATE_LIMIT_REQUESTS` / `RATE_LIMIT_WINDOW` | `60` / `1m` | API requests per client IP per window |
-| `RATE_LIMIT_MAX_KEYS` | `10000` | Client IPs tracked at once |
+| `MAX_ITEMS_PER_SESSION` | `100` | Maximum items per session (each session also holds at most 2 MiB of ciphertext) |
+| `MAX_SESSIONS` | `1000` | Concurrent sessions; unscanned QR codes are capped at twice this |
+| `RATE_LIMIT_REQUESTS` / `RATE_LIMIT_WINDOW` | `60` / `1m` | API requests per client IP (IPv6 per /64) per window |
+| `RATE_LIMIT_MAX_KEYS` | `10000` | Client IPs tracked at once; when full, the oldest is forgotten |
 | `LOG_LEVEL` | `info` | `debug`, `info`, `warn` or `error` (JSON on stderr) |
 
 For public instances, use an HTTPS proxy that forwards WebSockets. If you enable `TRUST_PROXY`, restrict backend access to that proxy: forwarded headers are trusted, so the backend must not remain directly accessible to clients. Open the same reachable address on the screen as well; browser QR links deliberately use that origin rather than attaching encryption keys to a server-supplied URL. `PUBLIC_URL` still controls the unkeyed URL in API responses.

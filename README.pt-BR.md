@@ -56,9 +56,10 @@ Use variáveis de ambiente; valores inválidos impedem a inicialização com uma
 | `TRUST_PROXY` | `false` | Confia em `X-Forwarded-For` e `X-Forwarded-Proto`; só atrás de um proxy |
 | `SESSION_TTL` | `30m` | Tempo sem atividade até a sessão terminar |
 | `PAIRING_TTL` | `2m` | Validade de um QR Code não escaneado |
-| `MAX_ITEMS_PER_SESSION` | `100` | Máximo de itens por sessão |
-| `RATE_LIMIT_REQUESTS` / `RATE_LIMIT_WINDOW` | `60` / `1m` | Requisições de API por IP a cada janela |
-| `RATE_LIMIT_MAX_KEYS` | `10000` | IPs acompanhados simultaneamente |
+| `MAX_ITEMS_PER_SESSION` | `100` | Máximo de itens por sessão (cada sessão também guarda no máximo 2 MiB cifrados) |
+| `MAX_SESSIONS` | `1000` | Sessões simultâneas; QR Codes não escaneados ficam limitados ao dobro disso |
+| `RATE_LIMIT_REQUESTS` / `RATE_LIMIT_WINDOW` | `60` / `1m` | Requisições de API por IP (IPv6 por /64) a cada janela |
+| `RATE_LIMIT_MAX_KEYS` | `10000` | IPs acompanhados simultaneamente; quando cheio, o mais antigo é descartado |
 | `LOG_LEVEL` | `info` | `debug`, `info`, `warn` ou `error` (JSON no stderr) |
 
 Para instâncias públicas, use um proxy HTTPS que encaminhe WebSockets. Se ativar `TRUST_PROXY`, restrinja o acesso ao backend a esse proxy: os cabeçalhos encaminhados são confiados, então a porta do backend não deve continuar acessível diretamente aos clientes. Abra o mesmo endereço acessível também no computador; os QRs usam essa origem para não anexar chaves de criptografia a uma URL fornecida pelo servidor. `PUBLIC_URL` continua controlando a URL sem chave retornada pela API.

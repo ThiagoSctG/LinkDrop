@@ -32,30 +32,38 @@ type session struct {
 	lastActivity time.Time
 	endpoints    map[string]Role
 	items        []Item // newest first
+	itemBytes    int
 	subscribers  subscribers
 }
+
+// maxSessionBytes bounds the ciphertext one session holds, whatever its item count.
+const maxSessionBytes = 2 << 20
+
+func itemSize(item Item) int { return len(item.Encrypted.IV) + len(item.Encrypted.Data) }
 
 // store owns every piece of LinkDrop state, including who is listening for changes.
 // All methods are safe for concurrent use; notifications are queued under the same
 // lock as the mutation that caused them, so subscribers never miss or reorder events.
 type store struct {
-	mu         sync.Mutex
-	now        func() time.Time
-	sessionTTL time.Duration
-	pairingTTL time.Duration
-	maxItems   int
-	pairings   map[string]*pairingToken
-	sessions   map[string]*session
+	mu          sync.Mutex
+	now         func() time.Time
+	sessionTTL  time.Duration
+	pairingTTL  time.Duration
+	maxItems    int
+	maxSessions int
+	pairings    map[string]*pairingToken
+	sessions    map[string]*session
 }
 
 func newStore(cfg Config) *store {
 	return &store{
-		now:        cfg.Now,
-		sessionTTL: cfg.SessionTTL,
-		pairingTTL: cfg.PairingTTL,
-		maxItems:   cfg.MaxItemsPerSession,
-		pairings:   map[string]*pairingToken{},
-		sessions:   map[string]*session{},
+		now:         cfg.Now,
+		sessionTTL:  cfg.SessionTTL,
+		pairingTTL:  cfg.PairingTTL,
+		maxItems:    cfg.MaxItemsPerSession,
+		maxSessions: cfg.MaxSessions,
+		pairings:    map[string]*pairingToken{},
+		sessions:    map[string]*session{},
 	}
 }
 
@@ -94,12 +102,16 @@ func (p *pairingToken) issued() newPairing {
 	return newPairing{Token: p.token, ScreenKey: p.screenKey, ExpiresAt: p.expiresAt.UTC()}
 }
 
-func (s *store) createScreen() newPairing {
+func (s *store) createScreen() (newPairing, *apiError) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
+	// Paired sessions keep their tokens, so this also bounds unscanned QR codes.
+	if len(s.sessions) >= s.maxSessions || len(s.pairings) >= 2*s.maxSessions {
+		return newPairing{}, errServerBusy
+	}
 	p := &pairingToken{token: opaqueID(), screenKey: opaqueID(), expiresAt: s.now().Add(s.pairingTTL)}
 	s.pairings[p.token] = p
-	return p.issued()
+	return p.issued(), nil
 }
 
 // createRejoinPairing issues a Pairing token that lets a new Phone replace the Session's
@@ -185,6 +197,9 @@ func (s *store) pair(token string) (pairedPhone, *apiError) {
 		p.subscribers.finish(encodePaired(p))
 		s.changed(sess)
 		return pairedPhone{SessionID: sess.id, EndpointKey: phoneKey, Role: RolePhone}, nil
+	}
+	if len(s.sessions) >= s.maxSessions {
+		return pairedPhone{}, errServerBusy
 	}
 	phoneKey := opaqueID()
 	sess := &session{
@@ -339,11 +354,17 @@ func (s *store) subscribeSession(id, key string) (*subscriber, *apiError) {
 }
 
 // changed records explicit activity and pushes a fresh snapshot to every endpoint.
+// Each role's snapshot is encoded once and shared by its connections.
 // Callers must hold s.mu.
 func (s *store) changed(sess *session) {
 	sess.lastActivity = s.now()
+	encoded := map[Role][]byte{}
 	for sub := range sess.subscribers {
-		sub.push(encodeSnapshot(s.snapshot(sess, sess.endpoints[sub.key])))
+		role := sess.endpoints[sub.key]
+		if encoded[role] == nil {
+			encoded[role] = encodeSnapshot(s.snapshot(sess, role))
+		}
+		sub.push(encoded[role])
 	}
 }
 
@@ -354,7 +375,8 @@ func (s *store) addItem(id, key string, d draft) (Item, *apiError) {
 	if err != nil {
 		return Item{}, err
 	}
-	if len(sess.items) >= s.maxItems {
+	item := Item{ID: d.ID, Encrypted: d.Encrypted, CreatedAt: s.now().UTC()}
+	if len(sess.items) >= s.maxItems || sess.itemBytes+itemSize(item) > maxSessionBytes {
 		return Item{}, errSessionFull
 	}
 	// IDs are authenticated as AES-GCM associated data on the devices.
@@ -363,8 +385,8 @@ func (s *store) addItem(id, key string, d draft) (Item, *apiError) {
 			return Item{}, errInvalidRequest
 		}
 	}
-	item := Item{ID: d.ID, Encrypted: d.Encrypted, CreatedAt: s.now().UTC()}
 	sess.items = slices.Insert(sess.items, 0, item)
+	sess.itemBytes += itemSize(item)
 	s.changed(sess)
 	return item, nil
 }
@@ -376,7 +398,13 @@ func (s *store) removeItem(id, key, itemID string) *apiError {
 	if err != nil {
 		return err
 	}
-	sess.items = slices.DeleteFunc(sess.items, func(item Item) bool { return item.ID == itemID })
+	sess.items = slices.DeleteFunc(sess.items, func(item Item) bool {
+		if item.ID != itemID {
+			return false
+		}
+		sess.itemBytes -= itemSize(item)
+		return true
+	})
 	s.changed(sess)
 	return nil
 }
@@ -392,6 +420,7 @@ func (s *store) clear(id, key string) *apiError {
 		return errScreenOnly
 	}
 	sess.items = nil
+	sess.itemBytes = 0
 	s.changed(sess)
 	return nil
 }

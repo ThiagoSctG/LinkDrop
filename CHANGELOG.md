@@ -14,5 +14,6 @@ First public release of LinkDrop.
 - Renew sessions and replace the paired phone while keeping the shared list.
 - Light and dark themes, with English and Brazilian Portuguese interfaces.
 - In-memory sessions that expire after 30 minutes of inactivity and end on restart.
+- Resource limits for public instances: concurrent sessions (`MAX_SESSIONS`), 2 MiB of ciphertext per session, four realtime connections per device, and per-/64 rate limiting for IPv6.
 - Default port `47821`, configurable through `PORT`.
 - Containers for Linux amd64/arm64 and binaries for Linux, macOS and Windows, with SHA-256 checksums.

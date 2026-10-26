@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/coder/websocket"
@@ -120,7 +121,11 @@ const (
 	// subscriberBuffer bounds how far a slow connection may fall behind before it is
 	// dropped. Every session message is a full snapshot, so a reconnect loses nothing.
 	subscriberBuffer = 16
+	// maxSubscribersPerKey allows a few tabs per endpoint; a newer connection closes the oldest.
+	maxSubscribersPerKey = 4
 )
+
+var subscriberSeq atomic.Uint64
 
 var messagePairingExpired = []byte(`{"type":"pairing_expired"}`)
 
@@ -128,6 +133,7 @@ var messagePairingExpired = []byte(`{"type":"pairing_expired"}`)
 // lock; the connection goroutine just drains send until it is closed.
 type subscriber struct {
 	key    string
+	seq    uint64
 	send   chan []byte
 	owner  subscribers
 	closed bool
@@ -136,7 +142,7 @@ type subscriber struct {
 type subscribers map[*subscriber]struct{}
 
 func newSubscriber(key string) *subscriber {
-	return &subscriber{key: key, send: make(chan []byte, subscriberBuffer)}
+	return &subscriber{key: key, seq: subscriberSeq.Add(1), send: make(chan []byte, subscriberBuffer)}
 }
 
 func (sub *subscriber) push(msg []byte) {
@@ -174,6 +180,19 @@ func (set *subscribers) add(sub *subscriber) {
 	}
 	(*set)[sub] = struct{}{}
 	sub.owner = *set
+	var oldest *subscriber
+	count := 0
+	for other := range *set {
+		if other.key == sub.key {
+			count++
+			if oldest == nil || other.seq < oldest.seq {
+				oldest = other
+			}
+		}
+	}
+	if count > maxSubscribersPerKey {
+		oldest.close()
+	}
 }
 
 func (set subscribers) finish(msg []byte) {

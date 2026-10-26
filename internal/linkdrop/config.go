@@ -19,6 +19,7 @@ type Config struct {
 	PairingTTL         time.Duration
 	SweepInterval      time.Duration
 	MaxItemsPerSession int
+	MaxSessions        int // unscanned QR codes are capped at twice this
 	RateLimit          RateLimit
 	// TrustProxy reads the client address and scheme from X-Forwarded-* headers.
 	TrustProxy bool
@@ -41,6 +42,7 @@ const (
 	DefaultPairingTTL         = 2 * time.Minute
 	DefaultSweepInterval      = 15 * time.Second
 	DefaultMaxItemsPerSession = 100
+	DefaultMaxSessions        = 1000
 	DefaultRateLimitRequests  = 60
 	DefaultRateLimitWindow    = time.Minute
 	DefaultRateLimitMaxKeys   = 10_000
@@ -61,6 +63,9 @@ func (c Config) withDefaults() Config {
 	}
 	if c.MaxItemsPerSession <= 0 {
 		c.MaxItemsPerSession = DefaultMaxItemsPerSession
+	}
+	if c.MaxSessions <= 0 {
+		c.MaxSessions = DefaultMaxSessions
 	}
 	if c.RateLimit.Requests <= 0 {
 		c.RateLimit.Requests = DefaultRateLimitRequests
@@ -94,6 +99,7 @@ func ConfigFromEnv(lookup func(string) (string, bool)) (Config, string, error) {
 	cfg.RateLimit.Window = p.duration("RATE_LIMIT_WINDOW", cfg.RateLimit.Window)
 	cfg.RateLimit.MaxKeys = p.int("RATE_LIMIT_MAX_KEYS", cfg.RateLimit.MaxKeys)
 	cfg.MaxItemsPerSession = p.int("MAX_ITEMS_PER_SESSION", cfg.MaxItemsPerSession)
+	cfg.MaxSessions = p.int("MAX_SESSIONS", cfg.MaxSessions)
 	level := p.logLevel("LOG_LEVEL")
 	if err := errors.Join(p.errs...); err != nil {
 		return Config{}, "", err

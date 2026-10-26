@@ -54,6 +54,7 @@ describe("phone", () => {
     [409, "qr_used", "Este QR Code já foi usado."],
     [410, "qr_expired", "Este QR Code expirou ou não está disponível."],
     [429, "rate_limited", "Muitas solicitações. Aguarde um minuto e tente novamente."],
+    [503, "server_busy", "O servidor atingiu o limite de sessões. Tente novamente mais tarde."],
   ])("explains a %i (%s) and how to get back", async (status, code, message) => {
     visit("/pair/tok1");
     fakeApi({ "POST /api/pair/tok1": () => ({ status, body: { code, error: "server text" } }) });

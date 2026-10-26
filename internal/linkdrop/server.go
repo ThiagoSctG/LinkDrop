@@ -132,7 +132,7 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	header.Set("x-frame-options", "DENY")
 	header.Set("content-security-policy", contentSecurityPolicy)
 	if strings.HasPrefix(r.URL.Path, "/api/") {
-		if !s.limiter.allow(clientIP(r, s.cfg.TrustProxy)) {
+		if !s.limiter.allow(rateKey(clientIP(r, s.cfg.TrustProxy))) {
 			writeError(w, errRateLimited)
 			return
 		}
@@ -142,7 +142,12 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) createScreen(w http.ResponseWriter, r *http.Request) {
-	s.writePairing(w, r, s.store.createScreen())
+	pairing, err := s.store.createScreen()
+	if err != nil {
+		writeError(w, err)
+		return
+	}
+	s.writePairing(w, r, pairing)
 }
 
 func (s *Server) createRejoinPairing(w http.ResponseWriter, r *http.Request) {
