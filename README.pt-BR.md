@@ -40,8 +40,6 @@ docker run -d --name linkdrop -p 47821:47821 ghcr.io/thiagosctg/linkdrop:v0.1.0
 
 Em uma rede local de confiança, abra `http://<IP-do-computador-na-rede>:47821` no computador e escaneie o QR Code com o celular. Os dois dispositivos precisam alcançar esse endereço; `localhost` no celular aponta para o próprio celular. Os itens continuam criptografados em HTTP, mas alguém na rede pode alterar o aplicativo e capturar chaves ou conteúdos. A interface informa essa limitação. Use HTTPS para instâncias públicas e redes em que você não confia.
 
-A imagem versionada acima é a última versão publicada. A criptografia descrita aqui é uma **mudança ainda não lançada**; use `docker compose up -d --build` para experimentar o código atual.
-
 **Outras opções:**
 
 - **Docker Compose**: clone o repositório, copie `.env.example` para `.env` e rode `docker compose up -d`.
@@ -74,7 +72,7 @@ Para instâncias públicas, use um proxy HTTPS que encaminhe WebSockets. Se ativ
 - Links de pareamento e credenciais salvas (incluindo a chave de criptografia no armazenamento do navegador) são segredos. Fechar a aba não encerra a sessão; use **Encerrar sessão** em computadores compartilhados. Substituir o celular revoga seu acesso ao servidor, mas mantém a chave de criptografia para preservar a lista. Não há sigilo futuro nem proteção contra repetição ou omissão de itens anteriormente válidos; encerre a sessão e crie outra para obter uma chave nova.
 - Execute uma única instância; as sessões não são compartilhadas entre réplicas.
 
-Veja [o desenho da criptografia](docs/encryption.md) (em inglês) para protocolo, modelo de ameaça e limites. Clientes e conexões salvas da versão sem criptografia são incompatíveis; recarregue os dois dispositivos e escaneie um novo QR após atualizar.
+Veja [o desenho da criptografia](docs/encryption.md) (em inglês) para protocolo, modelo de ameaça e limites.
 
 Relate vulnerabilidades de forma privada, como descrito no [SECURITY.md](SECURITY.md).
 

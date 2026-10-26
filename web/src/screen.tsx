@@ -9,6 +9,7 @@ import { CONNECTED_MS, PairingDisplay } from "./pairing-display";
 import { connectRealtime } from "./realtime";
 import { Session } from "./session";
 import { loadConnection, saveConnection } from "./storage";
+import { timerDelay } from "./time";
 
 /** Never replace a QR code more often than this, even if the device clock disagrees with the server. */
 const MIN_QR_LIFETIME_MS = 10_000;
@@ -116,7 +117,7 @@ function PairingView({
         role: "screen",
         encryptionKey: pairing.encryptionKey,
       });
-    const lifetime = Math.max(MIN_QR_LIFETIME_MS, Date.parse(pairing.expiresAt) - Date.now());
+    const lifetime = timerDelay(Math.max(MIN_QR_LIFETIME_MS, Date.parse(pairing.expiresAt) - Date.now()));
     const expiry = setTimeout(replaceCode, lifetime);
     const stop = connectRealtime({
       query: { pairingToken: pairing.token },

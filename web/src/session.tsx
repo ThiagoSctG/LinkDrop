@@ -128,23 +128,20 @@ export function Session({ connection, onEnded }: { connection: Connection; onEnd
             setError(errorMessage("encryption"));
             return;
           }
-          void Promise.all(message.items.map((item) => decryptItem(connection, item)))
-            .then((decoded) => {
-              if (!active || current !== revision || ended.current) return;
-              firstSeen.current ??= new Set(decoded.map((item) => item.id));
-              setItems(decoded);
-              setError((previous) => (previous === errorMessage("encryption") ? "" : previous));
-              alertNewItems(decoded);
-              const left = message.expiresInMs;
-              if (typeof left === "number") {
-                setDeadline((previous) => ({ at: Date.now() + left, total: Math.max(previous?.total ?? 0, left) }));
-              }
-            })
-            .catch(() => {
-              if (!active || current !== revision || ended.current) return;
-              setItems([]);
-              setError(errorMessage("encryption"));
-            });
+          // One item that fails to authenticate is dropped and reported; the rest stay readable.
+          void Promise.allSettled(message.items.map((item) => decryptItem(connection, item))).then((results) => {
+            if (!active || current !== revision || ended.current) return;
+            const decoded = results.flatMap((result) => (result.status === "fulfilled" ? [result.value] : []));
+            firstSeen.current ??= new Set(decoded.map((item) => item.id));
+            setItems(decoded);
+            if (decoded.length < results.length) setError(errorMessage("encryption"));
+            else setError((previous) => (previous === errorMessage("encryption") ? "" : previous));
+            alertNewItems(decoded);
+            const left = message.expiresInMs;
+            if (typeof left === "number") {
+              setDeadline((previous) => ({ at: Date.now() + left, total: Math.max(previous?.total ?? 0, left) }));
+            }
+          });
         } else if (message.type === "session_ended") {
           ++revision;
           end(message.reason);

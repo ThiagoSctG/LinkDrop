@@ -10,6 +10,13 @@ export function useNow(intervalMs = 30_000): number {
   return now;
 }
 
+/** Browsers fire timers longer than a signed 32-bit millisecond count immediately. */
+const MAX_TIMER_MS = 2 ** 31 - 1;
+
+export function timerDelay(ms: number): number {
+  return Math.min(Math.max(0, ms), MAX_TIMER_MS);
+}
+
 export function timeAgo(iso: string, now: number): string {
   const elapsed = now - Date.parse(iso);
   if (Number.isNaN(elapsed)) return "";

@@ -94,6 +94,27 @@ it("refuses plaintext snapshots and shows a decryption error", async () => {
   expect(screen.queryByRole("article")).toBeNull();
 });
 
+it("keeps readable items when another item in the snapshot fails to decrypt", async () => {
+  setLanguage("en");
+  visit("/pair");
+  FakeWebSocket.install();
+  const connection = { sessionId: "s1", endpointKey: "phone", role: "phone" as const, encryptionKey: TEST_KEY };
+  localStorage.setItem("linkdrop:phone", JSON.stringify(connection));
+  const readable = { ...(await encryptItem(connection, "", "still readable")), createdAt: "2026-10-26T00:00:00Z" };
+  const forged = {
+    ...(await encryptItem({ ...connection, sessionId: "other" }, "", "forged")),
+    createdAt: "2026-10-26T00:00:01Z",
+  };
+  fakeApi({});
+  render(<App />);
+  const socket = await FakeWebSocket.next("sessionId", "s1");
+  socket.receiveRaw({ type: "session", id: "s1", role: "phone", items: [forged, readable] });
+  expect(await screen.findByText("still readable")).toBeTruthy();
+  expect(await screen.findByText(/Could not verify or decrypt/)).toBeTruthy();
+  expect(screen.queryByText("forged")).toBeNull();
+  expect(screen.getAllByRole("article")).toHaveLength(1);
+});
+
 it.each(["new snapshot", "session ended"])("discards an older decryption after %s", async (event) => {
   setLanguage("en");
   visit("/pair");

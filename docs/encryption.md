@@ -1,6 +1,6 @@
 # Item encryption
 
-This describes the unreleased encrypted protocol. Released v0.1.0 clients use plaintext and are incompatible. Both devices must reload and pair again after the update. This implementation has not received an independent cryptographic audit.
+This describes how LinkDrop encrypts shared items. This implementation has not received an independent cryptographic audit.
 
 ## What is protected
 
@@ -47,7 +47,7 @@ POST requests contain `id` and `encrypted`; the response adds `createdAt`. No ti
 
 The server validates UUIDv4 syntax, envelope version, canonical base64url encoding, a 12-byte IV and ciphertext/tag length of 16–65,536 bytes. It rejects unknown fields, legacy plaintext, duplicate live item IDs and items above the configured session limit. The ciphertext cap accommodates JSON escaping at the client limits of 10,000 content characters and 200 title characters. A malicious client can send structurally valid garbage; only the devices can authenticate or reject its ciphertext.
 
-On decrypt, the device authenticates first, decodes JSON, checks content/title types and lengths, and independently classifies links. Only absolute HTTP(S) URLs without whitespace become clickable links. Notes render as escaped text. A decryption/validation failure clears the displayed snapshot and shows an error; no unencrypted interpretation is attempted. Revision guards discard asynchronous decryptions belonging to older snapshots or a terminated view.
+On decrypt, the device authenticates first, decodes JSON, checks content/title types and lengths, and independently classifies links. Only absolute HTTP(S) URLs without whitespace become clickable links. Notes render as escaped text. An item that fails decryption or validation is left out of the displayed list and the device shows an error; no unencrypted interpretation is attempted. Revision guards discard asynchronous decryptions belonging to older snapshots or a terminated view.
 
 ## Boundaries and limitations
 

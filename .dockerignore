@@ -12,5 +12,6 @@ web/dist
 docs
 *.md
 **/*_test.go
+web/src/**/*.test.ts
 web/src/**/*.test.tsx
 web/src/test

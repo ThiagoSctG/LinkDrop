@@ -7,6 +7,7 @@ import { t } from "./i18n";
 import { useModal } from "./modal";
 import { CONNECTED_MS, PairingDisplay } from "./pairing-display";
 import { connectRealtime } from "./realtime";
+import { timerDelay } from "./time";
 
 export type RejoinDialogProps = {
   sessionId: string;
@@ -72,7 +73,7 @@ export function RejoinDialog({ sessionId, screenKey, encryptionKey, onClose, onG
 
   useEffect(() => {
     if (!pairing || connected || expired) return;
-    const lifetime = Math.max(0, Date.parse(pairing.expiresAt) - Date.now());
+    const lifetime = timerDelay(Date.parse(pairing.expiresAt) - Date.now());
     const expiryTimer = setTimeout(() => setExpired(true), lifetime);
 
     const stop = connectRealtime({

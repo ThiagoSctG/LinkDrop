@@ -2,6 +2,7 @@ package linkdrop
 
 import (
 	"crypto/rand"
+	"crypto/subtle"
 	"encoding/base64"
 	"slices"
 	"sync"
@@ -248,7 +249,7 @@ func (s *store) screenPairing(token, screenKey string) (*pairingToken, *apiError
 	if err != nil {
 		return nil, err
 	}
-	if p.screenKey != screenKey {
+	if subtle.ConstantTimeCompare([]byte(p.screenKey), []byte(screenKey)) != 1 {
 		return nil, errForbidden
 	}
 	return p, nil

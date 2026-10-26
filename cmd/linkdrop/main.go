@@ -40,10 +40,13 @@ func run() error {
 		cfg.Logger.Warn("frontend not embedded; run `npm run build` before `go build`")
 	}
 	app := linkdrop.New(cfg)
+	// WebSocket connections are hijacked, which clears the read and idle deadlines.
 	server := &http.Server{
 		Addr:              addr,
 		Handler:           app,
 		ReadHeaderTimeout: 10 * time.Second,
+		ReadTimeout:       30 * time.Second,
+		IdleTimeout:       60 * time.Second,
 		ErrorLog:          slog.NewLogLogger(cfg.Logger.Handler(), slog.LevelWarn),
 	}
 

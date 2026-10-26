@@ -40,8 +40,6 @@ docker run -d --name linkdrop -p 47821:47821 ghcr.io/thiagosctg/linkdrop:v0.1.0
 
 On a trusted local network, open `http://<computer-LAN-IP>:47821` on the computer and scan its QR code with the phone. Both devices must reach that address; `localhost` on the phone points to the phone itself. Items remain encrypted on HTTP, but someone on the network could alter the application and capture keys or contents. The interface shows this limitation. Use HTTPS for public instances and networks you do not trust.
 
-The versioned image above is the last published release. Encryption described here is an **unreleased change**; build the current source with `docker compose up -d --build` to try it.
-
 **Other options:**
 
 - **Docker Compose**: clone the repo, copy `.env.example` to `.env` and run `docker compose up -d`.
@@ -74,7 +72,7 @@ For public instances, use an HTTPS proxy that forwards WebSockets. If you enable
 - Pairing links and saved device credentials (including the encryption key in browser storage) are secrets. Closing a tab does not end a session; use **End session** on shared computers. Replacing the phone revokes its server access but keeps the session encryption key to preserve the list. There is no forward secrecy or protection against replay/omission of previously valid items; end the session and start a new one to obtain a fresh key.
 - Run a single instance; sessions are not shared between replicas.
 
-See [the encryption design](docs/encryption.md) for the protocol, threat model and limitations. Plaintext-era clients and saved connections are incompatible; reload both devices and scan a fresh QR after updating.
+See [the encryption design](docs/encryption.md) for the protocol, threat model and limitations.
 
 Report vulnerabilities privately as described in [SECURITY.md](SECURITY.md).
 
