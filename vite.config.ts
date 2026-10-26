@@ -18,6 +18,6 @@ export default defineConfig({
   plugins: [preact(), keepDistInGit],
   build: { outDir: "dist", emptyOutDir: true, assetsDir: "assets" },
   server: {
-    proxy: { "/api": { target: "http://localhost:3000", ws: true } },
+    proxy: { "/api": { target: "http://localhost:47821", ws: true } },
   },
 });

@@ -27,6 +27,6 @@ RUN CGO_ENABLED=0 GOOS=$TARGETOS GOARCH=$TARGETARCH \
 FROM gcr.io/distroless/static-debian12:nonroot
 COPY --from=server /out/linkdrop /linkdrop
 USER nonroot:nonroot
-EXPOSE 3000
+EXPOSE 47821
 HEALTHCHECK --interval=10s --timeout=3s --start-period=5s --retries=5 CMD ["/linkdrop", "healthcheck"]
 ENTRYPOINT ["/linkdrop"]

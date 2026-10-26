@@ -21,10 +21,10 @@ A tela exibe um QR Code temporário. Ao escaneá-lo, o celular entra na mesma se
 ### Docker
 
 ```bash
-docker run -d -p 3000:3000 --name linkdrop ghcr.io/thiagosctg/linkdrop-web:latest
+docker run -d -p 47821:47821 --name linkdrop ghcr.io/thiagosctg/linkdrop-web:latest
 ```
 
-Abra `http://localhost:3000` na tela e escaneie o QR Code com o celular. Os dois dispositivos precisam acessar o mesmo endereço, então use o IP da máquina na rede local ou um domínio público em vez de `localhost`.
+Abra `http://localhost:47821` na tela e escaneie o QR Code com o celular. Os dois dispositivos precisam acessar o mesmo endereço, então use o IP da máquina na rede local ou um domínio público em vez de `localhost`.
 
 ### Docker Compose
 
@@ -40,14 +40,14 @@ No PowerShell, use `Copy-Item .env.example .env`.
 Baixe o binário da sua plataforma na página de [releases](https://github.com/ThiagoSctG/LinkDrop/releases) e execute:
 
 ```bash
-PORT=3000 ./linkdrop
+PORT=47821 ./linkdrop
 ```
 
 ## Configuração
 
 Todas as opções são variáveis de ambiente; a tabela completa está no [README em inglês](README.md#configuration). As principais:
 
-- `PORT` (padrão `3000`)
+- `PORT` (padrão `47821`)
 - `TRUST_PROXY` (padrão `false`): ative apenas atrás de um proxy reverso.
 - `PUBLIC_URL`: origem pública usada nos links de pareamento.
 - `SESSION_TTL` (padrão `30m`) e `PAIRING_TTL` (padrão `2m`)
@@ -64,8 +64,8 @@ Requisitos: Go 1.26+ e Node.js 22+.
 ```bash
 npm ci
 npm run build          # gera web/dist, que o binário Go embute
-go run ./cmd/linkdrop  # http://localhost:3000
-npm run dev            # Vite com hot reload em http://localhost:5173, com proxy de /api para a porta 3000
+go run ./cmd/linkdrop  # http://localhost:47821
+npm run dev            # Vite com hot reload em http://localhost:5173, com proxy de /api para a porta 47821
 ```
 
 `npm run build:all` gera o frontend e o binário `linkdrop` em um único passo.

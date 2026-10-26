@@ -72,9 +72,9 @@ jobs:
 
       - name: Smoke test
         run: |
-          docker run -d --name linkdrop -p 3000:3000 linkdrop:ci
+          docker run -d --name linkdrop -p 47821:47821 linkdrop:ci
           for _ in $(seq 1 20); do
-            curl -fsS http://localhost:3000/api/health && exit 0
+            curl -fsS http://localhost:47821/api/health && exit 0
             sleep 1
           done
           docker logs linkdrop

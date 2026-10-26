@@ -36,6 +36,7 @@ type RateLimit struct {
 }
 
 const (
+	DefaultPort               = 47821
 	DefaultSessionTTL         = 30 * time.Minute
 	DefaultPairingTTL         = 2 * time.Minute
 	DefaultSweepInterval      = 15 * time.Second
@@ -81,7 +82,7 @@ func (c Config) withDefaults() Config {
 func ConfigFromEnv(lookup func(string) (string, bool)) (Config, string, error) {
 	cfg := Config{}.withDefaults()
 	p := envParser{lookup: lookup}
-	port := p.int("PORT", 3000)
+	port := p.int("PORT", DefaultPort)
 	if port > 65535 {
 		p.fail("PORT", strconv.Itoa(port), "a TCP port up to 65535")
 	}

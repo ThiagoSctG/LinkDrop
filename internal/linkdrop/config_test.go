@@ -20,7 +20,7 @@ func TestConfigFromEnvDefaults(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if addr != ":3000" || cfg.TrustProxy || cfg.PublicURL != "" {
+	if addr != ":47821" || cfg.TrustProxy || cfg.PublicURL != "" {
 		t.Fatalf("addr %q cfg %+v", addr, cfg)
 	}
 	if cfg.SessionTTL != 30*time.Minute || cfg.PairingTTL != 2*time.Minute || cfg.MaxItemsPerSession != 100 {

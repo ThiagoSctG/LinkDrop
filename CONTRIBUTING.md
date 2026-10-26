@@ -43,7 +43,7 @@ npm run build
 go run ./cmd/linkdrop
 ```
 
-`npm run build:all` builds the frontend and the binary in one step. With the Go server running, `npm run dev` serves the frontend with hot reload on port 5173 and proxies `/api` to port 3000.
+`npm run build:all` builds the frontend and the binary in one step. With the Go server running, `npm run dev` serves the frontend with hot reload on port 5173 and proxies `/api` to port 47821.
 
 ## Tests
 

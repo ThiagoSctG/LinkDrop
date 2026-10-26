@@ -78,7 +78,7 @@ func TestContentClassification(t *testing.T) {
 		{"Senha: 123", "text"},
 		{"Obs: levar documento", "text"},
 		{"TODO: revisar", "text"},
-		{"localhost:3000", "text"},
+		{"localhost:47821", "text"},
 		{"192.168.0.1:8080", "text"},
 		{"javascript:alert(1)", "text"},
 		{"data:text/html,<script>alert(1)</script>", "text"},

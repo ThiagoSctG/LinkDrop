@@ -23,10 +23,10 @@ The screen shows a temporary QR code. Scanning it joins the phone to the same se
 ### Docker
 
 ```bash
-docker run -d -p 3000:3000 --name linkdrop ghcr.io/thiagosctg/linkdrop-web:latest
+docker run -d -p 47821:47821 --name linkdrop ghcr.io/thiagosctg/linkdrop-web:latest
 ```
 
-Open `http://localhost:3000` on the screen and scan the QR code with your phone. Both devices must reach the same address, so use the machine's LAN IP or a public hostname rather than `localhost`.
+Open `http://localhost:47821` on the screen and scan the QR code with your phone. Both devices must reach the same address, so use the machine's LAN IP or a public hostname rather than `localhost`.
 
 ### Docker Compose
 
@@ -40,7 +40,7 @@ docker compose up -d
 Download a binary for your platform from the [releases](https://github.com/ThiagoSctG/LinkDrop/releases) page and run it:
 
 ```bash
-PORT=3000 ./linkdrop
+PORT=47821 ./linkdrop
 ```
 
 ## Configuration
@@ -49,7 +49,7 @@ All settings are environment variables. Invalid values stop the server at startu
 
 | Variable | Default | Description |
 | --- | --- | --- |
-| `PORT` | `3000` | Listen port |
+| `PORT` | `47821` | Listen port |
 | `TRUST_PROXY` | `false` | Behind a reverse proxy, read the client IP from the last `X-Forwarded-For` hop and the scheme from `X-Forwarded-Proto`. Leave it off when exposed directly. |
 | `PUBLIC_URL` | _(empty)_ | External origin for pairing links, e.g. `https://drop.example.com`. Empty uses the request's host. |
 | `SESSION_TTL` | `30m` | Inactivity before a session ends |
@@ -73,12 +73,12 @@ Requirements: Go 1.26+ and Node.js 22+.
 ```bash
 npm ci
 npm run build          # builds the frontend into web/dist, which the Go binary embeds
-go run ./cmd/linkdrop  # http://localhost:3000
+go run ./cmd/linkdrop  # http://localhost:47821
 ```
 
 `npm run build:all` builds the frontend and then the `linkdrop` binary in one step.
 
-For frontend work with hot reload, keep the Go server running and start Vite in another terminal. It proxies `/api` to port 3000:
+For frontend work with hot reload, keep the Go server running and start Vite in another terminal. It proxies `/api` to port 47821:
 
 ```bash
 npm run dev            # http://localhost:5173

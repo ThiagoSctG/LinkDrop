@@ -76,7 +76,7 @@ func run() error {
 func healthcheck() int {
 	port := os.Getenv("PORT")
 	if port == "" {
-		port = "3000"
+		port = fmt.Sprint(linkdrop.DefaultPort)
 	}
 	client := http.Client{Timeout: 3 * time.Second}
 	res, err := client.Get("http://127.0.0.1:" + port + "/api/health")
